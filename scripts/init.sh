@@ -25,7 +25,11 @@ if [ "$1" = "--org" ]; then
 {
   "type": "org",
   "org": "${ORG}",
-  "products": {}
+  "products": {},
+  "files": {
+    "twin": "osis/twin.md",
+    "vision": "osis/vision.md"
+  }
 }
 EOF
 
@@ -81,7 +85,15 @@ if [ ! -f "osis/osis.json" ]; then
   "productVersion": "${VERSION}",
   "activePhase": null,
   "lastTwinUpdate": null,
-  "lastDriftScan": null
+  "lastDriftScan": null,
+  "files": {
+    "twin": "osis/twin.md",
+    "${VERSION}": {
+      "vision": "osis/${VERSION}/vision.md",
+      "product-spec": "osis/${VERSION}/product-spec.md",
+      "changelog": "osis/${VERSION}/changelog.md"
+    }
+  }
 }
 EOF
 fi

@@ -100,6 +100,8 @@ On ANY interaction, check `osis.json` silently:
 - **If `osis.json` exists with `type: "org"`** → read the products map. Ask which product the user is working on today. Route to that product's `osis/` and proceed as normal.
 - **If `osis.json` exists with `type: "product"` (or no type field)** → read it for context, greet with "Welcome back", then listen for what mode the user needs.
 
+**Product context loading:** `osis.json` contains a `files` manifest — a tree of all product documentation files. When the user references a version, feature, or product area, use the manifest to identify and read the relevant docs *before* engaging. This is the product context layer — it supplements the agent's existing codebase understanding, it does not replace it. Never ask the user to explain something that's already in the docs.
+
 ### Bootstrap
 
 First contact. Osis meets the project. **Triggered automatically when `osis.json` does not exist.**
@@ -158,7 +160,7 @@ CHECK osis.json (instant, silent)
 
 2. **Seed vision.md and product-spec.md** with HTML comment notes from observations. Not drafts. Give the user something to react to.
 
-3. **Update osis.json** with inferred product name.
+3. **Update osis.json** with inferred product name and generate the `files` manifest from all docs created during bootstrap.
 
 4. **Return a short assessment** to the main conversation:
 
@@ -226,13 +228,14 @@ Iterate until it's right
 
 The primary mode. User has a signal.
 
+0. **Load context** — read the `files` manifest in `osis.json`. Based on the user's signal, pull in the relevant product docs before engaging. Come to the conversation informed.
 1. Understand the signal — extract insight from noise.
 2. Assess impact — code-level, UX, scope, or product direction?
 3. Route to the right spec — which document, at what altitude?
 4. Check for conflicts — contradicts existing specs? Surface tensions.
 5. Propagate — cascades up or down?
 6. **Align** — confirm with user.
-7. Write — update specs via subagent (keep chat clean), log to changelog.
+7. Write — update specs via subagent (keep chat clean), log to changelog. If files were created or deleted, update the `files` manifest in `osis.json`.
 
 After writing, store the raw signal to `{phase}/signals/` as a **background task** (don't block the conversation).
 
@@ -290,7 +293,7 @@ Update the digital twin. Re-scan codebase, regenerate `twin.md`.
    - Standard systems: one-liner + quirks
    - Actors and what flows between them
    - Architecture (high level)
-4. **Write** `twin.md`. Update `osis.json`.
+4. **Write** `twin.md`. Update `osis.json` (including the `files` manifest if docs were added or removed).
 
 ## Behavioral Rules
 
@@ -331,9 +334,20 @@ osis/
   "productVersion": "v1",
   "activePhase": null,
   "lastTwinUpdate": null,
-  "lastDriftScan": null
+  "lastDriftScan": null,
+  "files": {
+    "twin": "osis/twin.md",
+    "vision": "osis/vision.md",
+    "v1": {
+      "vision": "osis/v1/vision.md",
+      "product-spec": "osis/v1/product-spec.md",
+      "changelog": "osis/v1/changelog.md"
+    }
+  }
 }
 ```
+
+The `files` key is a manifest of all product documentation files, structured by version. The skill uses this to dynamically pull in relevant context during conversations. Every mode that creates or deletes files must keep this manifest in sync.
 
 **Org osis.json format (monorepo):**
 ```json
