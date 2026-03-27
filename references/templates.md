@@ -58,6 +58,47 @@ External services the product relies on.
 
 ---
 
+## 0b. Org Twin (twin.md — monorepo)
+
+Org-level twin. Describes the org's products, shared systems, and how they relate. Not a product twin — no routes, no endpoints, no architecture details.
+
+```markdown
+# Org Twin — [Org Name]
+
+Last updated: [Date]
+
+## Products
+
+| Product | Description | Status |
+|---------|-------------|--------|
+| [product-a] | One-line description | Active / Planning / Maintenance |
+| [product-b] | ... | ... |
+
+## Shared Systems
+
+Systems, services, or infrastructure shared across products.
+
+### [Shared System Name]
+**Used by:** [product-a], [product-b]
+**What it does:** One-liner.
+
+## Product Relationships
+
+How products connect, share data, or depend on each other.
+
+[ASCII diagram or description]
+
+## Dependencies
+
+External services shared across the org.
+
+| Service | Used By | Purpose |
+|---------|---------|---------|
+| ...     | ...     | ...     |
+```
+
+---
+
 ## 1. Vision Spec
 
 Canon. Durable. The manifesto. Answers: **why does this thing need to exist?**

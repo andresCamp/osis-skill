@@ -97,7 +97,8 @@ For all spec templates: read [references/templates.md](references/templates.md).
 
 On ANY interaction, check `osis.json` silently:
 - **If `osis.json` does not exist** → run the bootstrap flow. Do not tell the user about internal state detection. Just start the welcome.
-- **If `osis.json` exists** → read it for context, greet with "Welcome back", then listen for what mode the user needs.
+- **If `osis.json` exists with `type: "org"`** → read the products map. Ask which product the user is working on today. Route to that product's `osis/` and proceed as normal.
+- **If `osis.json` exists with `type: "product"` (or no type field)** → read it for context, greet with "Welcome back", then listen for what mode the user needs.
 
 ### Bootstrap
 
@@ -108,30 +109,47 @@ Follow this message tree exactly:
 ```
 CHECK osis.json (instant, silent)
       │
-      ├── EXISTS
+      ├── EXISTS, type: "org"
+      │   Read products map.
+      │   "Welcome back 👋 You're in the [org] org.
+      │    Working on [product list] today?"
+      │   Route to selected product, then normal product flow.
+      │
+      ├── EXISTS, type: "product" (or no type)
       │   Read it.
       │   "Welcome back 👋 Let's keep building [product name].
       │    What's on your mind?"
       │
       └── DOES NOT EXIST
           │
-          👋 Welcome to Osis
+          Scan the repo structure.
           │
-          I'm setting up your product docs now...
-          [scaffold osis/]
+          ├── DETECTS MONOREPO (multiple apps, workspaces, workspace config)
+          │   "Looks like you've got multiple products here."
+          │   Ask: org name, product names.
+          │   Scaffold org osis/ (osis.json, twin.md, vision.md, symlinks).
+          │   Then ask which product to bootstrap first.
+          │   Bootstrap that product normally.
           │
-          ✌️ You just installed a product team
-             directly into your codebase.
-          │
-          From now on, just say "osis" in any conversation
-          and I'll think product with you.
-          │
-          "Let me take a look at what you've got..."
-          │
-          Single subagent: SCAN + TWIN + ASSESS
-          │
-          Present: master diagram + short assessment
-          One recommendation + "Want to start there?"
+          └── SINGLE PRODUCT
+              │
+              👋 Welcome to Osis
+              │
+              I'm setting up your product docs now...
+              [scaffold osis/]
+              │
+              ✌️ You just installed a product team
+                 directly into your codebase.
+              │
+              From now on, just say "osis" in any conversation
+              and I'll think product with you.
+              │
+              "Let me take a look at what you've got..."
+              │
+              Single subagent: SCAN + TWIN + ASSESS
+              │
+              Present: master diagram + short assessment
+              One recommendation + "Want to start there?"
 ```
 
 **The bootstrap subagent** scans the codebase and produces four outputs:
@@ -314,6 +332,15 @@ osis/
   "activePhase": null,
   "lastTwinUpdate": null,
   "lastDriftScan": null
+}
+```
+
+**Org osis.json format (monorepo):**
+```json
+{
+  "type": "org",
+  "org": null,
+  "products": {}
 }
 ```
 

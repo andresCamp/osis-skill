@@ -166,6 +166,93 @@ osis/
 - **Not every system needs every spec** — backend systems skip design specs. No empty templates.
 - **Archive** completed phases into `archive/`
 
+## Monorepo Support
+
+Osis works in monorepos with multiple products. The root `osis/` becomes an org-level router that directs agents to the right product context.
+
+### Org vs Product
+
+| Scope | osis.json type | Twin | Versions | Protocol |
+|-------|---------------|------|----------|----------|
+| Product (default) | `"product"` or absent | Describes one product | `{product}-v{n}/` with full spec hierarchy | Full protocol |
+| Org | `"org"` | Describes the org — products, shared systems, relationships | None — org docs are flat | No spec hierarchy |
+
+The product layer is unchanged. A product `osis/` in a monorepo is identical to a standalone `osis/`. The org layer is purely additive.
+
+### Org osis.json
+
+```json
+{
+  "type": "org",
+  "org": "cloudnine",
+  "products": {
+    "serdna": "apps/serdna/osis",
+    "onc9": "apps/onc9/osis"
+  }
+}
+```
+
+The `products` map is the source of truth for routing. Keys are product names, values are relative paths to product `osis/` directories.
+
+**Not every app needs osis.** The test is whether the thing requires product thinking — decisions, tradeoffs, iteration. A design system with consumers who depend on its APIs? That needs osis. A shared API where interface changes ripple across products? That needs osis. A stateless auth wrapper around a third-party SDK? Probably not. Osis is the thinking layer. If you need to think about it, it belongs in the products map. If it's static plumbing, it shows up in the org twin as context but doesn't need its own protocol.
+
+### Org File Structure
+
+```
+osis/                          ← org root (flat, no versions)
+  osis.json                    ← type: "org", products map
+  twin.md                      ← org twin (products, shared systems, relationships)
+  vision.md                    ← org mission (durable, not versioned)
+  {product-a}/                 ← symlink → apps/product-a/osis
+  {product-b}/                 ← symlink → apps/product-b/osis
+```
+
+Org docs are flat. No version folders, no phases, no changelog. The org doesn't ship — products ship. Org-level docs (mission, culture, etc.) are added as needed.
+
+Symlinks at the org root point to each product's `osis/` directory. These serve two purposes:
+- **Human convenience** — browse all product docs from one place
+- **Agent fallback** — an agent at the repo root can traverse into any product
+
+### Monorepo File Structure (Full)
+
+```
+monorepo/
+├── osis/                              ← org-level osis
+│   ├── osis.json                      ← type: "org", products map
+│   ├── twin.md                        ← org twin
+│   ├── vision.md                      ← org mission
+│   ├── product-a/                     ← symlink → apps/product-a/osis
+│   └── product-b/                     ← symlink → apps/product-b/osis
+│
+├── apps/product-a/osis/               ← product-level osis (real files)
+│   ├── osis.json                      ← type: "product"
+│   ├── twin.md                        ← product twin
+│   └── product-a-v1/
+│       ├── vision.md
+│       ├── product-spec.md
+│       ├── changelog.md
+│       └── phase-1-ship/
+│
+├── apps/product-b/osis/               ← product-level osis (real files)
+│   ├── osis.json                      ← type: "product"
+│   ├── twin.md                        ← product twin
+│   └── product-b-v1/
+│       ├── vision.md
+│       ├── product-spec.md
+│       ├── changelog.md
+│       └── ...
+```
+
+### Agent Routing
+
+1. Agent finds the nearest `osis.json`
+2. Read the `type` field:
+   - **`"product"` (or absent)** — product scope. Behave as normal.
+   - **`"org"`** — org scope. Read the products map. If the agent can determine which product it's working on from context, route there. Otherwise, ask: *"You're in the [org] org. Working on [product list] today?"*
+3. Once routed to a product, the agent operates on the product `osis/` exactly as in a standalone repo.
+
+The org `osis.json` is the agent's routing table. The symlinks are the human's routing table. Both get you to the same product.
+
 ## Using with Project Management (Linear, etc.)
 
 ### Setting Up a Phase
