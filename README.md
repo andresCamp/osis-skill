@@ -2,7 +2,7 @@
 
 Build products people love, faster. Product management that lives in your codebase.
 
-Osis is a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that turns your AI agent into an elite product leader. It automates product strategy and documentation using frameworks from the world's best companies.
+Osis is an agent skill that turns your CLI coding agent into an elite product leader. It automates product strategy and documentation using frameworks from the world's best companies.
 
 ## What it does
 
@@ -19,11 +19,11 @@ Osis is a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill th
 npx skills add andresCamp/osis-skill
 ```
 
-Then say "osis" in any Claude Code conversation.
+Then say "osis" in any conversation with your agent.
 
 ## Usage
 
-Say "osis" in any Claude Code conversation to activate. On first run, Osis bootstraps your project:
+Say "osis" to activate. On first run, Osis bootstraps your project:
 
 ```bash
 # Single product
@@ -84,7 +84,7 @@ The skill tracks its version in `version.json` and checks for updates automatica
 
 ```
 skills/osis/
-  SKILL.md             ← skill definition (loaded by Claude Code)
+  SKILL.md             ← skill definition (loaded by the agent)
   version.json         ← skill version for auto-update checks
   scripts/
     init.sh            ← project scaffolding script
