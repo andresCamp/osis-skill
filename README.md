@@ -15,18 +15,11 @@ Osis is a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill th
 
 ## Install
 
-Clone directly into your Claude Code skills directory:
-
 ```bash
-git clone https://github.com/andresCamp/osis-skill.git ~/.claude/skills/osis
+npx skills add andresCamp/osis-skill
 ```
 
-Or add as a git submodule in your project:
-
-```bash
-git submodule add https://github.com/andresCamp/osis-skill.git skills/osis
-ln -s "$(pwd)/skills/osis" ~/.claude/skills/osis
-```
+Then say "osis" in any Claude Code conversation.
 
 ## Usage
 

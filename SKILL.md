@@ -96,9 +96,9 @@ For all spec templates: read [references/templates.md](references/templates.md).
 On first interaction per conversation, silently check for updates:
 
 1. Read `{SKILL_PATH}/version.json` for the local version.
-2. Fetch `https://raw.githubusercontent.com/andresCamp/osis/main/skills/osis/version.json` (don't block the conversation — if the fetch fails, skip silently).
+2. Fetch `https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json` (don't block the conversation — if the fetch fails, skip silently).
 3. If the remote version is newer, append to your greeting:
-   `"⬆ Update available (v{local} → v{remote}). Run \`npx skills add andresCamp/osis\` to update."`
+   `"⬆ Update available (v{local} → v{remote}). Run \`npx skills add andresCamp/osis-skill\` to update."`
 
 ## Modes
 
