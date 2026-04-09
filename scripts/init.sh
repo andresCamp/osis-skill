@@ -9,6 +9,66 @@
 
 set -e
 
+# Grant the osis skill the single permission it needs to self-update silently:
+# the exact curl command the auto-update step runs (pinned in SKILL.md so this
+# exact-string allow rule matches and never prompts). The skill no longer reads
+# version.json from ~/.claude/skills/osis/ — the local version lives inside
+# SKILL.md itself, which Claude Code already injects into the agent's context.
+# Idempotent — safe to re-run.
+ensure_skill_permissions() {
+  local settings=".claude/settings.local.json"
+  local rules=(
+    'Bash(curl -fsL --max-time 3 https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json)'
+  )
+
+  mkdir -p .claude
+
+  if [ ! -f "$settings" ]; then
+    # Build a fresh settings file with all rules.
+    {
+      echo '{'
+      echo '  "permissions": {'
+      echo '    "allow": ['
+      local i
+      for i in "${!rules[@]}"; do
+        if [ "$i" -lt $((${#rules[@]} - 1)) ]; then
+          echo "      \"${rules[$i]}\","
+        else
+          echo "      \"${rules[$i]}\""
+        fi
+      done
+      echo '    ]'
+      echo '  }'
+      echo '}'
+    } > "$settings"
+    return
+  fi
+
+  # Merge any missing rules into the existing file.
+  local rule
+  for rule in "${rules[@]}"; do
+    if grep -qF "$rule" "$settings"; then
+      continue
+    fi
+
+    if command -v jq >/dev/null 2>&1; then
+      local tmp
+      tmp=$(mktemp)
+      jq --arg rule "$rule" \
+        '.permissions = (.permissions // {}) | .permissions.allow = ((.permissions.allow // []) + [$rule] | unique)' \
+        "$settings" > "$tmp" && mv "$tmp" "$settings"
+    else
+      echo ""
+      echo "⚠ Could not auto-add osis skill permission to $settings."
+      echo "  Add this line to permissions.allow manually:"
+      echo "    \"${rule}\""
+      echo ""
+    fi
+  done
+}
+
+ensure_skill_permissions || true
+
 # Org mode
 if [ "$1" = "--org" ]; then
   ORG="${2:-my-org}"
