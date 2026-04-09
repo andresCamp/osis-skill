@@ -250,7 +250,7 @@ After writing, store the raw signal to `{phase}/signals/` as a **background task
 
 ```markdown
 ---
-type: transcript | note | feedback | research | observation
+type: transcript | note | feedback | research | observation | feature-idea | product-idea
 date: 2026-03-15
 source: user interview | voice memo | slack | manual
 affected: piq--product-spec.md
@@ -258,6 +258,13 @@ summary: One-line key insight.
 ---
 [raw content]
 ```
+
+**Idea signals** are first-class citizens of the state machine view. Two scoped subtypes:
+
+- **`feature-idea`** — a candidate feature inside an existing product. Lives in that product's `signals/`. Surfaces in the product-level state machine at "idea" stage. Promotes to a real iteration/spec when validated.
+- **`product-idea`** — a candidate new product. Lives in `~/osis/signals/`. Surfaces in the org-level state machine at "idea" stage. Promotes to a real scaffolded product (its own `osis/` folder) when validated.
+
+The state machine view at every scale shows **two things together**: real items (specs, iterations, scaffolded products) at their current stage, plus idea signals that haven't been promoted yet. Promotion is the hand-off from signal to first-class artifact. Capture is the input, the state machine is the rendered lifecycle.
 
 ### Update
 
@@ -304,6 +311,34 @@ Update the digital twin. Re-scan codebase, regenerate `twin.md`.
    - Architecture (high level)
 4. **Write** `twin.md`. Update `osis.json` (including the `files` manifest if docs were added or removed).
 
+## Doc Conventions
+
+### Session Footer
+
+Every osis doc carries a Sessions footer that tracks which agent sessions built it. This is doc provenance — at a glance, you can see who thought about a doc, when, and across how many sessions. The `claude -r` command on each line is a side benefit: if you want to re-enter a specific session, you can.
+
+**Format** — appended to the bottom of the doc, most recent first:
+
+```markdown
+---
+
+## Sessions
+
+- {YYYY-MM-DD} — {one-line summary of what happened in this session} · `claude -r {session-id}`
+- {YYYY-MM-DD} — {one-line summary} · `claude -r {session-id}`
+```
+
+**When to update** — every time you write or update an osis doc:
+
+1. Run `bash {SKILL_PATH}/scripts/session-id.sh` to get the current session ID. If it exits non-zero (no session file found), skip the footer for this write — don't block.
+2. If the doc has no Sessions section, create one.
+3. If the most recent entry has the **current** session ID, update its summary in place (this same session is doing more work on the doc).
+4. Otherwise, prepend a new entry above the existing ones.
+
+The summary is one line, written from the perspective of "what changed in this session" — concrete, not philosophical. Examples: *"Added the proximity principle paragraph"*, *"Refined section II based on feedback"*, *"Initial draft from bootstrap conversation"*.
+
+This convention applies to every funnel and engine doc except `osis.json` and `README.md` (which are not conversation artifacts).
+
 ## Behavioral Rules
 
 - **Ask before you write.** Always. The conversation is where the value is.
@@ -312,6 +347,7 @@ Update the digital twin. Re-scan codebase, regenerate `twin.md`.
 - **Be honest.** If an idea is bad, say so. If specs are drifting, say so. You're a cofounder, not a yes-man.
 - **Protect canon.** Vision and product specs are the ceiling. If a discovery contradicts them, escalate.
 - **Keep it lean.** The protocol prevents knowledge from escaping the architecture. It is not bureaucracy.
+- **Update the session footer on every doc write** (see Doc Conventions). Skip silently if the session ID can't be resolved.
 - **Don't be eager.** Not every code change is a product signal. Adding standard auth doesn't need a system product spec. Standard infrastructure gets documented by the cron twin update, not by interrupting the developer mid-implementation. Only engage when there's a real product decision to make.
 - **Stay in your lane.** You are the product authority. You don't take over code tasks, debugging, or implementation. You engage when the work touches product intent, UX, behavior, or strategy. If the user is just coding, stay quiet.
 
