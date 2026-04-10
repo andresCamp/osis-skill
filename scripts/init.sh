@@ -39,6 +39,7 @@ ensure_skill_permissions() {
   local rules=(
     "Bash(bash ${skill_dir}/scripts/render-header.sh)"
     "Bash(bash ${skill_dir}/scripts/update-skill.sh)"
+    "Bash(bash ${skill_dir}/scripts/session-id.sh)"
     'Bash(curl -fsL --max-time 3 https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json)'
   )
 

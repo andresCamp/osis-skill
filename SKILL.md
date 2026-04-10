@@ -1,6 +1,7 @@
 ---
 name: osis
 description: "Build products people love, faster with product management that lives in your codebase. Osis automates product strategy and documentation using frameworks from the world's best companies. Trigger when the user says 'osis' in any context, discusses product direction, shares feedback, asks about specs, or mentions updating documentation."
+allowed-tools: Bash(bash */.claude/skills/osis/*) Bash(mkdir *) Bash(curl *) Edit(/osis/**) Write(/osis/**)
 ---
 
 # Osis
