@@ -1,3 +1,5 @@
 {
-  "version": "0.3.1"
+  "version": "0.5.0",
+  "title": "New look + yes/no updates",
+  "description": "Osis now has a mark, a time-aware greeting, and new versions that ask before upgrading."
 }

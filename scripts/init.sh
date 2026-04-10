@@ -9,25 +9,49 @@
 
 set -e
 
-# Grant the osis skill the single permission it needs to self-update silently:
-# the exact curl command the auto-update step runs (pinned in SKILL.md so this
-# exact-string allow rule matches and never prompts). The skill no longer reads
-# version.json from ~/.claude/skills/osis/ — the local version lives inside
-# SKILL.md itself, which Claude Code already injects into the agent's context.
-# Idempotent — safe to re-run.
+# Grant the osis skill the permissions it needs to run prompt-free:
+#
+#   1. `permissions.additionalDirectories`: points at ~/.claude/skills/osis/
+#      so Claude Code trusts the entire skill directory like it's part of the
+#      project. Silently grants Read access to SKILL.md, references/*, scripts/*,
+#      and anything else bundled with the skill. This is the documented Anthropic
+#      mechanism for "grant file access" (see Claude Code permissions docs).
+#
+#   2. `permissions.allow` Bash exact-match rules:
+#      - bash invocation of scripts/render-header.sh: runs as SKILL.md bash
+#        injection preprocessing on activation to compose the Claude-Code-style
+#        header (logo + dynamic info). Zero tool calls visible, but `bash` still
+#        requires an explicit allow rule.
+#      - bash invocation of scripts/update-skill.sh: the one-tap upgrade flow,
+#        runs as an agent tool call when the user says yes to the release banner.
+#
+#      Note: the auto-update remote version check (`curl ...`) also runs as
+#      SKILL.md bash injection, but its exact-match allow rule is handled
+#      separately via the ancient settings.local.json history — keep it there
+#      so the curl works prompt-free. (TODO: consider migrating it into this
+#      rules array for consistency.)
+#
+# Expands $HOME at write time so each user gets rules with their own absolute
+# paths. Idempotent — safe to re-run.
 ensure_skill_permissions() {
   local settings=".claude/settings.local.json"
+  local skill_dir="${HOME}/.claude/skills/osis"
   local rules=(
+    "Bash(bash ${skill_dir}/scripts/render-header.sh)"
+    "Bash(bash ${skill_dir}/scripts/update-skill.sh)"
     'Bash(curl -fsL --max-time 3 https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json)'
   )
 
   mkdir -p .claude
 
   if [ ! -f "$settings" ]; then
-    # Build a fresh settings file with all rules.
+    # Build a fresh settings file with additionalDirectories + allow rules.
     {
       echo '{'
       echo '  "permissions": {'
+      echo '    "additionalDirectories": ['
+      echo "      \"${skill_dir}\""
+      echo '    ],'
       echo '    "allow": ['
       local i
       for i in "${!rules[@]}"; do
@@ -44,7 +68,24 @@ ensure_skill_permissions() {
     return
   fi
 
-  # Merge any missing rules into the existing file.
+  # Merge additionalDirectories if not already present.
+  if ! grep -qF "$skill_dir" "$settings"; then
+    if command -v jq >/dev/null 2>&1; then
+      local tmp
+      tmp=$(mktemp)
+      jq --arg dir "$skill_dir" \
+        '.permissions = (.permissions // {}) | .permissions.additionalDirectories = ((.permissions.additionalDirectories // []) + [$dir] | unique)' \
+        "$settings" > "$tmp" && mv "$tmp" "$settings"
+    else
+      echo ""
+      echo "⚠ Could not auto-add osis skill dir to $settings."
+      echo "  Add this entry to permissions.additionalDirectories manually:"
+      echo "    \"${skill_dir}\""
+      echo ""
+    fi
+  fi
+
+  # Merge any missing allow rules into the existing file.
   local rule
   for rule in "${rules[@]}"; do
     if grep -qF "$rule" "$settings"; then
