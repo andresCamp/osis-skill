@@ -84,12 +84,16 @@ fi
 # Random pick from the variant list
 OPENING="${OPENINGS[$((RANDOM % ${#OPENINGS[@]}))]}"
 
-# Product name for the greeting suffix (falls back to "your product" if
-# osis.json doesn't exist or has no product field)
-PRODUCT_NAME="${PRODUCT:-your product}"
-
-# Assemble the final greeting line
-GREETING="${OPENING} Let's keep building ${PRODUCT_NAME}."
+# Assemble the final greeting line. Fresh bootstraps (no osis.json) get a
+# fixed welcome message because "Let's keep building your product" is awkward
+# when you haven't started anything yet — it's the user's first interaction
+# with Osis, so we explicitly welcome them. Existing projects get the rotated
+# opening phrase + "Let's keep building [product]" suffix as before.
+if [ -z "$PRODUCT" ]; then
+  GREETING="Welcome to Osis 👋 Let's set up your product."
+else
+  GREETING="${OPENING} Let's keep building ${PRODUCT}."
+fi
 
 # Info column — 6 rows to match the 6-line logo.
 # Row 1 uses markdown `**Osis**` for bold rendering and `[text](url)` for a
