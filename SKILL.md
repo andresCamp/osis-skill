@@ -1,6 +1,6 @@
 ---
 name: osis
-description: "Build products people love, faster with product management that lives in your codebase. Osis automates product strategy and documentation using frameworks from the world's best companies. Trigger when the user says 'osis' in any context, discusses product direction, shares feedback, asks about specs, or mentions updating documentation."
+description: "A typed reasoning system for product development. Osis maintains clean, evolving product context across abstraction layers — from manifesto to implementation. Trigger when the user says 'osis' in any context, discusses product direction, shares feedback, or asks about product docs."
 allowed-tools: Bash(bash */.claude/skills/osis/*) Bash(mkdir *) Bash(curl *) Edit(/osis/**) Write(/osis/**)
 ---
 
@@ -55,38 +55,80 @@ Users bring signals in all shapes. Accept any format — your job is to extract 
 
 The messier the input, the more valuable the synthesis. When a user dumps chaos, distill it: "Here's what I'm hearing. The key insight is X. This affects Y spec. Does that match?"
 
-## The Duality
+## What Osis Is
+
+A **typed reasoning system for product development.** Each document is a projection of the same product at a different level of abstraction. The docs are not documentation: they are definitions that curate clean context for human-agent collaboration.
 
 Osis maintains two things:
 
 ```
 osis/
-  twin.md      ← what the product IS (code → natural language)
-  {product}-v{n}/   ← what the product is BECOMING (natural language → code)
+  twin.md          ← what the product IS (code → natural language)
+  manifesto.md     ← why this product exists (enduring declaration)
+  {version}/       ← what the product is BECOMING (clarity funnel → code)
 ```
 
-The **twin** is code compression — the entire codebase compressed into one product-level document. Master diagram, all product loops, pipeline, systems (with JTBD and flows for product-specific ones), actors, architecture. Comprehensive enough that an agent reading it can make correct decisions when modifying any part of the product.
+The **twin** is an agent-readable operational map. Descriptive, not prescriptive: it reflects the system, it does not define product decisions.
 
-The **protocol** is structured specs — vision, product spec, phases, system specs. Where the product is going and how it's getting there.
+The **clarity funnel** is the layered doc hierarchy. Each layer is a tighter ring from ethereal to concrete, until the thinking is specific enough for plan mode to turn into code.
 
 Together: where we are and where we're going.
 
 ## The Protocol
 
-Layered spec hierarchy. Two layers are **canon** (durable). Everything else **rotates** per phase.
+A clarity funnel that turns product thinking into executable decisions.
 
 ```
-CANON (durable)
-  Vision Spec (why) → Product Spec + Roadmap (what + when)
-
-PHASE (rotates)
-  Phase Game Plan → System Specs → Features
-
-SYSTEM SPECS (per system)
-  System Product Spec → Design Spec → Implementation Spec
+Org: "We believe X about the world"              [philosophical]
+  Product: "This problem matters"                 [philosophical]
+    Version: "Here's how we're manifesting it"    [strategic]
+      System: "Here's a distinct surface"         [strategic/tactical]
+        Iteration: "Here's the bet right now"     [tactical]
+          Phase: "Here's how we're building it"   [executable]
+            → plan mode → code
 ```
 
-**Specs flow down** as constraints. **Discoveries flow up** as updates. Updates propagate recursively.
+Each layer constrains the one below. Discoveries at lower layers that invalidate higher-layer assumptions propagate up immediately.
+
+**Doc types (funnel):**
+
+| Doc | Type | Level |
+|---|---|---|
+| `charter.md` | Operating constraints | Org |
+| `manifesto.md` | Declaration | Product |
+| `brand.md` | Expression | Product |
+| `design-system.md` | Interface rules | Product |
+| `thesis.md` | Hypothesis | Version |
+| `product.md` | Definition | Version / System |
+| `strategy.md` | Allocation | Version |
+| `brief.md` | Experiment | Iteration |
+| `{phase}.impl.md` | Execution plan | Phase |
+
+**Doc types (engine):**
+
+| Doc | Level |
+|---|---|
+| `twin.md` | Product |
+| `changelog.md` | Version |
+| `signals/{date}--{slug}.md` | Iteration |
+| `osis.json` | Root |
+| `README.md` | Root |
+
+**Single vs multi system:**
+
+| Scenario | Version docs | System docs |
+|---|---|---|
+| Single system | `thesis.md` + `product.md` + `strategy.md` | none |
+| Multi system | `thesis.md` + `product.md` + `strategy.md` | `{system}-product.md` per system |
+
+In multi-system: `product.md` at the version level defines the product as a whole (composition, macro flows, how systems connect). Each `{system}-product.md` defines a subsystem (internal flow, inputs/outputs, local behavior). Version product does not define internal system mechanics. System products do not redefine cross-system flows.
+
+**Key boundaries:**
+- Product = what the product is, how it behaves. Strategy = market, wedge, focus, success criteria.
+- Brief = what changes and why (product decisions). Implementation = how it's built (tech decisions).
+- Implementation is the handoff boundary. Osis owns through tech decisions. Plan mode owns syntax and execution.
+
+**Frameworks:** Osis applies a small set of proven product frameworks (JTBD, PR/FAQ, North Star, Loop, Non-goals, Experiment/Hypothesis, Opportunity Solution Tree) to the right decisions, automatically. Frameworks are a hidden reasoning layer: max 1-2 per doc, never change the type of a doc. See [references/protocol.md](references/protocol.md) for the full framework library and mapping.
 
 For the full protocol details: read [references/protocol.md](references/protocol.md).
 
@@ -98,15 +140,23 @@ For all spec templates: read [references/templates.md](references/templates.md).
 
 - **Activation header** (render the block below verbatim as the first lines of your greeting — preserve ALL whitespace exactly, including the leading braille blank characters on line 1 of the logo and the leading spaces on subsequent lines. The block uses markdown `**bold**` and `[text](url)` that should render live. Do NOT wrap this in a code block — that would make the markdown literal and kill the bold + link rendering):
 
-!`bash ${CLAUDE_SKILL_DIR}/scripts/render-header.sh`
+!`bash ${CLAUDE_SKILL_DIR}/scripts/render-header.sh 2>/dev/null || echo 'Osis · activation header unavailable (permissions not yet configured — see below)'`
 
 - **Current time:** !`date "+%H:%M %Z"`
 - **Current date:** !`date "+%A, %B %-d, %Y"`
-- **Local version:** !`cat ${CLAUDE_SKILL_DIR}/version.json`
+- **Local version:** !`cat ${CLAUDE_SKILL_DIR}/version.json 2>/dev/null || echo '{"version":"unknown"}'`
 - **Remote version:** !`curl -fsL --max-time 3 https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json 2>/dev/null || echo '{"version":"unknown"}'`
 - **Project state:** !`cat osis/osis.json 2>/dev/null || echo 'no osis.json — this is a fresh bootstrap'`
 
 When the skill activates, use the pre-loaded values above and do **exactly** these steps in order. Nothing else — no git commands, no exploratory project scans, no extra file reads. The skill's promise is a silent activation followed by a greeting; freelancing here breaks that promise and surfaces tool calls the user doesn't need to see.
+
+**Step 0 — Check for degraded activation.** If the Activation header contains "permissions not yet configured" or the Local version is `{"version":"unknown"}`, the skill's preprocessing couldn't read its own files — most likely because global permissions haven't been set up yet. In this case:
+
+1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/ensure-global-perms.sh` as a tool call to fix permissions.
+2. Output a minimal greeting: *"Osis is setting up for the first time in this project. Permissions are now configured — say 'osis' again and I'll be fully loaded."*
+3. **Stop.** Do not attempt the normal greeting, auto-update, or mode detection — the pre-loaded context is incomplete. The next activation will work normally.
+
+**Normal activation (preprocessing succeeded):**
 
 1. Run the auto-update check using the pre-loaded `Local version` and `Remote version` above (see [Auto-Update](#auto-update) for the comparison logic and the yes/no prompt flow). **Never** run `cat version.json` or `curl` as tool calls — those outputs are already inlined above.
 
@@ -114,7 +164,7 @@ When the skill activates, use the pre-loaded values above and do **exactly** the
 
 3. Greet the user per Mode Detection, then wait for their signal.
 
-**Do not** run `git status`, `git log`, `git diff`, or any other git command during initialization or routine consults. Git is only allowed inside Twin and Analyze modes, where the branch guard runs explicitly. The continuity layer the agent needs already lives in the pre-loaded `Project state` above (`activePhase`, `lastTwinUpdate`) and in the per-doc session footers — that's the source of truth for "what's in flight," not git state.
+**Do not** run `git status`, `git log`, `git diff`, or any other git command during initialization or routine consults. Git is only allowed inside Twin and Analyze modes, where the branch guard runs explicitly. The continuity layer the agent needs already lives in the pre-loaded `Project state` above (`activeVersion`, `lastTwinUpdate`) and in the per-doc session footers — that's the source of truth for "what's in flight," not git state.
 
 If you genuinely need a project status report, the user will ask for one explicitly. Don't infer it.
 
@@ -142,7 +192,7 @@ The version check runs as SKILL.md preprocessing — the `Local version` and `Re
 
 4. On the user's reply to the release banner, **every clear yes/no branch must end with the deferred `"What's on your mind?"` prompt** (the one you skipped in the initial greeting). The banner resolution is the transition back to normal conversation. Tone stays professional-warm — you're a partner, not a service:
 
-   - **Clear yes** (`yes`, `y`, `yeah`, `sure`, `ok`, `do it`, etc.) → run this **exact** Bash command (whitelisted by `init.sh`):
+   - **Clear yes** (`yes`, `y`, `yeah`, `sure`, `ok`, `do it`, etc.) → run this **exact** Bash command (whitelisted by `bootstrap.sh`):
 
      ```bash
      bash {SKILL_PATH}/scripts/update-skill.sh
@@ -172,7 +222,7 @@ On ANY interaction, check `osis.json` silently:
 
   Never display two questions in one greeting — the release banner *replaces* `"What's on your mind?"` in the initial response, and `"What's on your mind?"` comes back in your reply after the user resolves the banner.
 
-  Do **not** enumerate `osis.json` fields like `activePhase`, `activeVersion`, or the files manifest in prose — the activation header already shows the relevant project context, and restating it is internal chatter, not signal. Loaded context informs your *answers*, never your *greeting*.
+  Do **not** enumerate `osis.json` fields like `activeVersion` or the files manifest in prose — the activation header already shows the relevant project context, and restating it is internal chatter, not signal. Loaded context informs your *answers*, never your *greeting*.
 
 **Product context loading:** `osis.json` contains a `files` manifest — a tree of all product documentation files. When the user references a version, feature, or product area, use the manifest to identify and read the relevant docs *before* engaging. This is the product context layer — it supplements the agent's existing codebase understanding, it does not replace it. Never ask the user to explain something that's already in the docs. Loading is silent: never announce which files you've read or what state you found.
 
@@ -203,7 +253,7 @@ CHECK osis.json (instant, silent)
           ├── DETECTS MONOREPO (multiple apps, workspaces, workspace config)
           │   "Looks like you've got multiple products here."
           │   Ask: org name, product names.
-          │   Scaffold org osis/ (osis.json, twin.md, vision.md, symlinks).
+          │   Scaffold org osis/ (osis.json, charter.md, symlinks).
           │   Then ask which product to bootstrap first.
           │   Bootstrap that product normally.
           │
@@ -232,7 +282,7 @@ CHECK osis.json (instant, silent)
 
 1. **Write twin.md.** Mechanical, present tense. What systems exist, what they do, how they connect. Product-level master diagram. Readable in 2-3 minutes.
 
-2. **Seed vision.md and product-spec.md** with HTML comment notes from observations. Not drafts. Give the user something to react to.
+2. **Seed product-level and version-level docs** with HTML comment notes from scan observations. These are conversation starters, not drafts. The agent writes the actual content through conversation with the user. Notes go inside `<!-- -->` comments so the docs remain empty shells until the conversation fills them.
 
 3. **Update osis.json** with inferred product name and generate the `files` manifest from all docs created during bootstrap.
 
@@ -258,45 +308,37 @@ Think like a CPO, not an engineer. The diagram shows the product's systems, not 
 
 Read everything including intent documents, but treat them as information, not signal. You don't know if they're current, accurate, or still what the user believes. The user is the source of truth. Existing docs and code are preparation for the conversation, not a substitute for it.
 
-**After the assessment, the journey unfolds one doc at a time:**
+**After the assessment, guide the work down the clarity funnel by default, but let the user steer:**
 
 ```
-"Let's start with the vision."
-     │
-     ▼
-Deep conversation
-  The user's mind is the source of truth.
-  Existing docs are context, not answers.
-  Ask first principles questions.
-  Challenge. Probe. Listen.
-  Don't rush. The conversation IS the value.
-     │
-     ▼
-"Here's what I'm hearing. Let me write this up."
-     │
-     ▼
-Write (subagent — keep the chat clean)
-     │
-     ▼
-"Take a look. What resonates? What's off?"
-     │
-     ▼
-Iterate until it's right
-     │
-     ▼
-"Vision is locked. Ready to think about
- the product?"
-     │
-     ▼
-[repeat for product spec, then phase, then systems]
+Default motion:
+  manifesto → thesis → product → strategy → brief → implementation
+
+Real conversations:
+  user can enter anywhere
+  user can jump layers
+  one aligned decision can affect multiple docs
+  discoveries propagate up or down as needed
 ```
+
+When the user is passive, lead them toward increasing clarity down the funnel. When the user is active, route their signal to the right typed docs at the right altitude. Do not force a serial ritual if the work clearly spans multiple layers.
+
+The unit of work is **one aligned decision**, not one doc. After alignment:
+
+1. Identify every typed doc implicated by the decision.
+2. Preserve each doc's semantic boundary.
+3. Update all affected docs together in one coordinated write.
+4. Leave untouched docs alone.
 
 **Critical rules:**
-- ONE doc at a time. Deep dive. Don't batch-write multiple docs.
 - Always have a real conversation before writing. Even if you think you know the answer from the docs.
+- The funnel is directional guidance, not a rigid workflow. Move downward by default, but follow the user's signal.
+- One aligned decision can update multiple docs. Propagation beats sequence.
+- Update only the docs implicated by the decision. Do not manufacture work for untouched layers.
 - All writes happen in subagents so the chat stays clean. The user sees the conversation and the result, not file diffs.
 - The seeded notes from the bootstrap scan give each conversation a starting point. But the conversation produces the doc, not the notes.
 - Wire up CLAUDE.md with pointers after the first doc is written.
+- Not every product needs every doc immediately. The manifesto and product definition are the priority. Brand, design-system, and strategy can come later when relevant.
 
 ### Consult
 
@@ -304,56 +346,50 @@ The primary mode. User has a signal.
 
 0. **Load context** — read the `files` manifest in `osis.json`. Based on the user's signal, pull in the relevant product docs before engaging. Come to the conversation informed.
 1. Understand the signal — extract insight from noise.
-2. Assess impact — code-level, UX, scope, or product direction?
-3. Route to the right spec — which document, at what altitude?
-4. Check for conflicts — contradicts existing specs? Surface tensions.
-5. Propagate — cascades up or down?
+2. Assess impact — which layer of the funnel does this touch?
+3. Route to the right doc — which typed artifact, at what altitude?
+4. Check for conflicts — contradicts existing docs? Surface tensions.
+5. Propagate — discoveries that invalidate higher-layer assumptions push up immediately.
 6. **Align** — confirm with user.
-7. Write — update specs via subagent (keep chat clean), log to changelog. If files were created or deleted, update the `files` manifest in `osis.json`.
+7. Write — update docs via subagent (keep chat clean), log to changelog. If files were created or deleted, update the `files` manifest in `osis.json`.
 
-After writing, store the raw signal to `{phase}/signals/` as a **background task** (don't block the conversation).
+After writing, store the raw signal to the relevant `{iteration}/signals/` as a **background task** (don't block the conversation).
 
 ```markdown
 ---
-type: transcript | note | feedback | research | observation | feature-idea | product-idea
+type: observation | feedback | research | transcript | metric
 date: 2026-03-15
 source: user interview | voice memo | slack | manual
-affected: piq--product-spec.md
 summary: One-line key insight.
 ---
-[raw content]
+[Raw content. Do not interpret here. Raw only.]
 ```
 
-**Idea signals** are first-class citizens of the state machine view. Two scoped subtypes:
-
-- **`feature-idea`** — a candidate feature inside an existing product. Lives in that product's `signals/`. Surfaces in the product-level state machine at "idea" stage. Promotes to a real iteration/spec when validated.
-- **`product-idea`** — a candidate new product. Lives in `~/osis/signals/`. Surfaces in the org-level state machine at "idea" stage. Promotes to a real scaffolded product (its own `osis/` folder) when validated.
-
-The state machine view at every scale shows **two things together**: real items (specs, iterations, scaffolded products) at their current stage, plus idea signals that haven't been promoted yet. Promotion is the hand-off from signal to first-class artifact. Capture is the input, the state machine is the rendered lifecycle.
+**When a signal warrants a new iteration:** If the signal represents a new product direction (not just a tweak to an existing iteration), create a new iteration folder with a `brief.md` that captures the signal, insight, and bet. The brief is the commander's orders: what changes, what doesn't, and how the build phases out.
 
 ### Update
 
-Discovery during implementation.
+Discovery during implementation. Upward propagation in action.
 
 1. Understand what was discovered.
-2. Identify which spec owns it.
-3. Check propagation.
+2. Identify which doc owns it — route by type (is this a product definition change? A strategy change? A brief-level adjustment?).
+3. Check propagation — does this invalidate assumptions at a higher layer?
 4. Align and write.
 
 ### Analyze
 
-Compare any artifact against the relevant spec for alignment. This is broader than drift detection.
+Compare any artifact against the relevant doc for alignment. This is broader than drift detection.
 
 Use cases:
-- **Drift check:** specs vs code — flag mismatches
-- **Feature QA:** "I just built this, does it match the spec?"
-- **Agent QA:** "Here's an agent transcript, does the behavior align with the product spec?"
+- **Drift check:** docs vs code — flag mismatches
+- **Feature QA:** "I just built this, does it match the product doc?"
+- **Agent QA:** "Here's an agent transcript, does the behavior align with the product?"
 - **Output QA:** compare any output against behavioral rules or product intent
 
 Flag findings as:
-- **Drift** — spec says X, reality does Y
-- **Missing** — no spec coverage
-- **Stale** — spec references something that no longer exists
+- **Drift** — doc says X, reality does Y
+- **Missing** — no doc coverage
+- **Stale** — doc references something that no longer exists
 - **Misaligned** — built correctly but doesn't match product intent
 
 Log to changelog. Branch guard: warn if not on main for code-based checks.
@@ -366,15 +402,15 @@ Update the digital twin. Re-scan codebase, regenerate `twin.md`.
 
 1. **Branch guard** — warn if not on main. User can proceed.
 2. **Scan** — codebase, routes, schemas, services, dependencies.
-3. **Compress** — generate product-level understanding. Not code docs. Include:
+3. **Compress** — generate an agent-readable operational map. Not code docs. Include:
    - Master diagram (full product topology in one visual)
-   - All product loops with flow diagrams
-   - Pipeline flow
-   - Product-specific systems: JTBD, flows, capabilities, features, behavioral rules, maturity
-   - Standard systems: one-liner + quirks
-   - Actors and what flows between them
+   - Systems with capabilities and maturity
+   - Canonical entities and their relationships
+   - Interfaces (how systems communicate)
    - Architecture (high level)
-4. **Write** `twin.md`. Update `osis.json` (including the `files` manifest if docs were added or removed).
+   - Dependencies
+   - Known gaps
+4. **Write** `twin.md`. The twin is descriptive, not prescriptive: it reflects the system, it does not define product decisions. Update `osis.json` (including the `files` manifest if docs were added or removed).
 
 ## Doc Conventions
 
@@ -410,58 +446,66 @@ This convention applies to every funnel and engine doc except `osis.json` and `R
 - **Challenge vague thinking.** "We need better onboarding" is not a signal. "Users drop off after step 2 because X" is. Help the user get specific.
 - **Think in systems.** Every change ripples. Think upstream and downstream.
 - **Be honest.** If an idea is bad, say so. If specs are drifting, say so. You're a cofounder, not a yes-man.
-- **Protect canon.** Vision and product specs are the ceiling. If a discovery contradicts them, escalate.
+- **Upward propagation.** Discoveries at lower layers that invalidate higher-layer assumptions must be pushed up immediately (phase → iteration → version). Prevents silent drift.
 - **Keep it lean.** The protocol prevents knowledge from escaping the architecture. It is not bureaucracy.
 - **Update the session footer on every doc write** (see Doc Conventions). Skip silently if the session ID can't be resolved.
-- **Don't be eager.** Not every code change is a product signal. Adding standard auth doesn't need a system product spec. Standard infrastructure gets documented by the cron twin update, not by interrupting the developer mid-implementation. Only engage when there's a real product decision to make.
+- **Don't be eager.** Not every code change is a product signal. Code bugs don't touch osis unless they reveal a product/UX decision. Standard infrastructure gets documented by the twin update, not by interrupting the developer. Only engage when there's a real product decision to make.
 - **Stay in your lane.** You are the product authority. You don't take over code tasks, debugging, or implementation. You engage when the work touches product intent, UX, behavior, or strategy. If the user is just coding, stay quiet.
+- **No em dashes.** Never use em dashes (—) in any written content. Use commas, periods, colons, or parentheses instead.
 
 ## File Structure
 
 ```
 osis/
-  osis.json                        ← machine state + config (read first)
-  README.md                        ← static, explains osis protocol
-  twin.md                          ← what the product IS (code compression)
-  {product}-v{n}/                       ← what the product is BECOMING
-    vision.md
-    product-spec.md
-    changelog.md
-    phase-{N}-{slug}/
-      game-plan.md
-      {system}--product-spec.md
-      {system}--design-spec.md
-      {system}--implementation-spec.md
-      signals/                     ← raw inputs that informed decisions
-    archive/
+  osis.json                           ← machine state, file graph
+  README.md                           ← static
+  charter.md                          ← org
+  manifesto.md                        ← product (declaration)
+  brand.md                            ← product (expression)
+  design-system.md                    ← product (interface rules)
+  twin.md                             ← product (engine: operational map)
+  {version}/                          ← e.g. v0/, v1/
+    thesis.md                         ← version (hypothesis)
+    product.md                        ← version (definition)
+    strategy.md                       ← version (allocation)
+    changelog.md                      ← version (engine: decision record)
+    {system}-product.md               ← system (only if multi-system)
+    {iteration-slug}/                 ← e.g. iteration-1--activation/
+      brief.md                        ← iteration (experiment)
+      signals/                        ← iteration (engine: raw intel)
+        {date}--{slug}.md
+      {phase-name}.impl.md            ← phase (execution plan)
 ```
 
 **osis.json format:**
 ```json
 {
-  "version": "1.0",
+  "version": "1.0.0",
+  "type": "product",
   "product": null,
-  "productVersion": "v1",
-  "activePhase": null,
+  "activeVersion": "v1",
   "lastTwinUpdate": null,
-  "lastDriftScan": null,
   "files": {
     "twin": "osis/twin.md",
-    "vision": "osis/vision.md",
+    "manifesto": "osis/manifesto.md",
+    "brand": "osis/brand.md",
+    "design-system": "osis/design-system.md",
     "v1": {
-      "vision": "osis/v1/vision.md",
-      "product-spec": "osis/v1/product-spec.md",
+      "thesis": "osis/v1/thesis.md",
+      "product": "osis/v1/product.md",
+      "strategy": "osis/v1/strategy.md",
       "changelog": "osis/v1/changelog.md"
     }
   }
 }
 ```
 
-The `files` key is a manifest of all product documentation files, structured by version. The skill uses this to dynamically pull in relevant context during conversations. Every mode that creates or deletes files must keep this manifest in sync.
+The `files` key is a manifest of all product documentation files. The skill uses this to dynamically pull in relevant context during conversations. Every mode that creates or deletes files must keep this manifest in sync.
 
 **Org osis.json format (monorepo):**
 ```json
 {
+  "version": "1.0.0",
   "type": "org",
   "org": null,
   "products": {}
@@ -470,14 +514,14 @@ The `files` key is a manifest of all product documentation files, structured by 
 
 Scaffold for a new project:
 ```bash
-bash {SKILL_PATH}/scripts/init.sh {version}
+bash {SKILL_PATH}/scripts/bootstrap.sh {version}
 ```
 
 After bootstrap, add a line to the project's `CLAUDE.md` or `AGENTS.md`:
 
 ```markdown
 ## Product Knowledge
-Read osis/twin.md and the active phase specs in osis/ before working on any product feature. Say "osis" to consult the product expert.
+Read osis/twin.md and the active version docs in osis/ before working on any product feature. Say "osis" to consult the product expert.
 ```
 
 ## When NOT to Trigger

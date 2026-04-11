@@ -2,14 +2,14 @@
 
 Build products people love, faster. Product management that lives in your codebase.
 
-Osis is an agent skill that turns your CLI coding agent into an elite product leader. It automates product strategy and documentation using frameworks from the world's best companies.
+Osis is an agent skill that turns your CLI coding agent into an elite product leader. It is a typed reasoning system for product development that keeps clean, evolving product context in your repo.
 
 ## What it does
 
 - Thinks through a product lens — challenges assumptions, surfaces tensions, drives clarity
-- Manages product specs, vision docs, changelogs, and signals inside your repo
+- Maintains a clarity funnel inside your repo: manifesto, thesis, product, strategy, briefs, implementation docs
 - Discusses first, writes when aligned — never speculatively updates docs
-- Uses proven frameworks: Jobs-to-be-Done, working backwards, first principles
+- Uses proven frameworks: JTBD, PR/FAQ, North Star, loops, non-goals
 - Supports monorepos with multi-product orchestration
 - Auto-update notifications via `version.json`
 
@@ -27,35 +27,42 @@ Say "osis" to activate. On first run, Osis bootstraps your project:
 
 ```bash
 # Single product
-bash ~/.claude/skills/osis/scripts/init.sh myapp-v1
+bash ~/.claude/skills/osis/scripts/bootstrap.sh v1
 
 # Monorepo / org
-bash ~/.claude/skills/osis/scripts/init.sh --org my-org
+bash ~/.claude/skills/osis/scripts/bootstrap.sh --org my-org
 ```
 
 This scaffolds a product documentation structure in your repo:
 
 ```
 osis/
-  osis.json              ← machine state + config
+  osis.json              ← machine state + file manifest
+  README.md              ← protocol explainer
+  manifesto.md           ← product declaration
+  brand.md               ← voice, positioning, language
+  design-system.md       ← interface principles and primitives
   twin.md                ← what the product IS (code → natural language)
-  {product}-v{n}/        ← what the product is BECOMING
-    vision.md
-    product-spec.md
+  {version}/             ← what the product is BECOMING
+    thesis.md
+    product.md
+    strategy.md
     changelog.md
-    phase-{N}-{slug}/
-      game-plan.md
+    {system}-product.md  ← optional, for multi-system products
+    {iteration-slug}/
+      brief.md
       signals/           ← raw inputs that informed decisions
+      {phase-name}.impl.md
 ```
 
 ## Modes
 
 | Mode | What it does |
 |------|-------------|
-| **Bootstrap** | Scans your codebase, generates a digital twin, seeds vision and product spec |
-| **Consult** | Ingest a signal (feedback, idea, observation), discuss, update specs when aligned |
-| **Update** | Surface implementation discoveries back into specs |
-| **Analyze** | Compare code or artifacts against specs — drift detection, feature QA, alignment checks |
+| **Bootstrap** | Scans your codebase, generates a digital twin, scaffolds the v1 doc structure, and starts the first product conversation |
+| **Consult** | Ingest a signal (feedback, idea, observation), discuss, route it to the right typed doc, and update docs when aligned |
+| **Update** | Surface implementation discoveries back up the funnel when they change product direction |
+| **Analyze** | Compare code or artifacts against docs — drift detection, feature QA, alignment checks |
 | **Twin** | Re-scan codebase and regenerate the digital twin |
 
 ## Monorepo Support
@@ -64,17 +71,14 @@ For orgs with multiple products, Osis creates an org-level `osis.json` that maps
 
 ```json
 {
+  "version": "1.0.0",
   "type": "org",
   "org": "my-org",
-  "products": {},
-  "files": {
-    "twin": "osis/twin.md",
-    "vision": "osis/vision.md"
-  }
+  "products": {}
 }
 ```
 
-Each product gets its own versioned spec directory while sharing the org-level twin and vision.
+The org layer owns routing and constraints. Each product keeps its own `osis/` directory with product-level docs and version folders.
 
 ## Versioning
 
@@ -87,11 +91,35 @@ skills/osis/
   SKILL.md             ← skill definition (loaded by the agent)
   version.json         ← skill version for auto-update checks
   scripts/
-    init.sh            ← project scaffolding script
+    bootstrap.sh            ← project scaffolding script
   references/
     protocol.md        ← full protocol specification
     templates.md       ← all spec templates
     drift-scan.md      ← automated drift scan setup
+```
+
+## Development
+
+To work on the skill locally, clone the repo and symlink it into your Claude Code skills directory:
+
+```bash
+# Clone the skill repo (skip if you already have it)
+git clone https://github.com/andresCamp/osis-skill.git
+
+# Remove any existing install
+rm -rf ~/.claude/skills/osis
+
+# Symlink your local clone
+ln -s "$(pwd)/osis-skill" ~/.claude/skills/osis
+```
+
+The symlink tells Osis you're a dev — the auto-update check will print `dev_install` and skip downloading, so it won't clobber your local changes. Pull updates yourself with `git pull` inside the repo.
+
+To go back to the regular install:
+
+```bash
+rm ~/.claude/skills/osis
+npx skills add andresCamp/osis-skill
 ```
 
 ## License

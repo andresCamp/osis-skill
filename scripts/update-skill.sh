@@ -8,7 +8,7 @@
 #     output.
 #
 # SKILL.md auto-update step invokes this exact command when the user agrees
-# to an upgrade. The matching Bash allow rule is granted by init.sh on first
+# to an upgrade. The matching Bash allow rule is granted by bootstrap.sh on first
 # bootstrap, so the agent runs it prompt-free.
 set -e
 

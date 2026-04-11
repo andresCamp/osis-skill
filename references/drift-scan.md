@@ -1,51 +1,49 @@
 # Automated Drift Scan
 
-Set up a recurring agent task (Claude Code `/loop`, Codex cron, or equivalent) to automatically detect spec drift.
+Set up a recurring agent task (Claude Code `/loop`, Codex cron, or equivalent) to automatically detect doc drift.
 
 ## Setup
 
-Copy the prompt below and configure it as a recurring task. Run frequency depends on team velocity — daily during active development, weekly during slower periods.
+Copy the prompt below and configure it as a recurring task. Run frequency depends on team velocity: daily during active development, weekly during slower periods.
 
 ## The Prompt
 
 ```
-Read all active specs in osis/{product}-v{n}/phase-{N}-{slug}/.
+Read osis/osis.json to identify the active version and file manifest.
 
-For each implementation spec, compare:
+For each implementation doc ({phase}.impl.md), compare:
   - Data model claims against schema files
   - API surface claims against actual route/procedure definitions
   - Dependency claims against package.json / imports
   - Engineering Notes against recent git log (last 2 weeks)
 
-For each system product spec, compare:
-  - Documented states/transitions against state management code
-  - Edge cases listed against error handling in the codebase
+For each product doc (product.md or {system}-product.md), compare:
+  - Documented flows against actual user-facing behavior
+  - Behavioral rules against code implementation
+  - Core concepts against actual naming in the codebase
 
-For each design spec, verify:
-  - Links are still valid
-  - Status reflects current state
+For each iteration brief (brief.md), check:
+  - Phases listed have corresponding impl docs
+  - "What Changes" items are reflected in the codebase
 
-For the phase game plan, check:
-  - Systems listed have corresponding spec files
-  - Deferred items haven't leaked into the codebase
+Do NOT scan manifesto.md, thesis.md, strategy.md, brand.md, or
+design-system.md. These are human-owned reasoning docs that
+can't be validated against code.
 
-Do NOT scan osis/{product}-v{n}/vision.md or product-spec.md — these are human-owned
-documents of intent that can't be validated against code.
-
-Log all findings to osis/{product}-v{n}/changelog.md with:
+Log all findings to osis/{version}/changelog.md with:
   - Date
-  - Spec file path
-  - Finding type: [Drift] (spec says X, code does Y),
-    [Missing] (code with no spec), or [Stale] (spec references dead code)
+  - Doc file path
+  - Finding type: [Drift] (doc says X, code does Y),
+    [Missing] (code with no doc), or [Stale] (doc references dead code)
   - Description
 
-Propose spec updates where the code is clearly authoritative.
-Do not modify specs without confirmation — log findings only.
+Propose doc updates where the code is clearly authoritative.
+Do not modify docs without confirmation. Log findings only.
 ```
 
 ## Finding Categories
 
-- **Drift** — spec says X, code does Y. Spec needs updating.
-- **Missing** — code implements something with no spec coverage. Spec needs creating or expanding.
-- **Stale** — spec references code/patterns that no longer exist. Spec needs cleanup.
-- **Misaligned** — built correctly but doesn't match product intent. The code works, but it's not what the product spec intended.
+- **Drift** — doc says X, code does Y. Doc needs updating.
+- **Missing** — code implements something with no doc coverage. Doc needs creating or expanding.
+- **Stale** — doc references code/patterns that no longer exist. Doc needs cleanup.
+- **Misaligned** — built correctly but doesn't match product intent. The code works, but it's not what the product doc intended.

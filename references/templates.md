@@ -1,595 +1,674 @@
-# Spec Templates
+# Osis Protocol v1.0.0 — Templates
 
-Templates for every artifact in the osis protocol. Each template defines the structure and purpose of each section. These serve two audiences: **humans** making decisions and **AI agents** needing written context to act correctly.
+> Working draft. Minimal canonical shapes for each doc type.
+> Core spine required. Sections removable. Modules optional.
 
 ---
 
-## 0. Digital Twin (twin.md)
+## Org Level
 
-Code compression. A mechanical description of what the codebase produces. Present tense. No vision, no personas, no strategy. One file. The first thing an agent reads. Readable in 2-3 minutes.
+### charter.md
+
+Type: **Operating constraints**
+Question: *Who are we and how do we work?*
 
 ```markdown
-# Digital Twin — [Product Name]
+# [Org Name] — Charter
+
+## Mission
+
+One sentence. Why this organization exists.
+
+## Values
+
+| Value | In Practice |
+|---|---|
+| [value] | [How this shows up in decisions] |
+
+## Non-Negotiables
+
+What we will never compromise on, regardless of circumstance.
+
+- [non-negotiable]
+
+## Decision Principles
+
+How we make decisions when values conflict or the path is unclear.
+
+- [principle]
+```
+
+---
+
+## Product Level
+
+### manifesto.md
+
+Type: **Declaration**
+Question: *What's wrong with the world and what are we going to do about it?*
+
+```markdown
+# [Product Name]
+
+## [The declaration in one line]
+
+---
+
+## The Problem
+
+What is broken. Not a feature gap — a human problem.
+Be specific. Be visceral.
+
+## The Deeper Structure
+
+Why has this persisted? What structural forces keep it unsolved?
+One level deeper than the obvious.
+
+## What Changed
+
+What is different now — technology, culture, cost —
+that makes solving this possible today?
+
+## The Declaration
+
+What we are going to do about it.
+One paragraph. Quotable. Bold.
+
+## What We Refuse
+
+What we will not do, even if it would be easier or more profitable.
+
+---
+
+*[Organization] — [Date]*
+```
+
+Notes:
+- Mostly native writing. Should not feel framework-generated.
+- Optional section: Impact, Long Horizon.
+
+---
+
+### brand.md
+
+Type: **Expression**
+Question: *How does this product express itself?*
+
+```markdown
+# [Product Name] — Brand
+
+## Identity
+
+What this product IS in one sentence.
+
+## Voice
+
+| We are | We are not |
+|---|---|
+| [trait] | [anti-trait] |
+
+## Positioning
+
+For [audience]
+who [situation/pain],
+[Product] is a [category]
+that [key benefit].
+Unlike [alternative],
+we [key differentiator].
+
+## Naming & Language
+
+| Use | Don't Use | Why |
+|---|---|---|
+| [term] | [term] | [reason] |
+```
+
+Notes:
+- Mostly native writing.
+- Optional section: Personality.
+
+---
+
+### design-system.md
+
+Type: **Interface rules**
+Question: *How does it look and feel?*
+
+```markdown
+# [Product Name] — Design System
+
+## Interface Principles
+
+First-principles for every visual and interaction decision.
+
+### [Principle 1]
+What it means. How it applies.
+
+### [Principle 2]
+...
+
+## Visual Language
+
+### Color
+Primary, secondary, semantic. When to use each.
+
+### Typography
+Families, scale, hierarchy.
+
+### Spacing & Layout
+Grid, spacing scale, layout patterns.
+
+## Interaction Patterns
+
+### Navigation
+How users move through the product.
+
+### Feedback
+How the product responds to actions.
+
+### States
+Loading, empty, error, success.
+
+## Shared Primitives
+
+Reusable interface patterns and their rules.
+
+| Primitive | Usage | Behavior |
+|---|---|---|
+| [primitive] | [when] | [how] |
+```
+
+Notes:
+- Not a coded component inventory. Shared interface primitives, not an exhaustive catalog.
+- Actual coded components belong closer to implementation.
+
+---
+
+## Version Level
+
+### thesis.md
+
+Type: **Hypothesis**
+Question: *What bet is this version making?*
+
+```markdown
+# [Product] [Version] — Thesis
+
+## Conviction
+
+What we believe about how to attack the problem.
+This is the bet. Clear enough that someone can disagree.
+
+## Why Now
+
+What makes this the right moment for this particular approach.
+
+## Assumptions
+
+What must be true for this to work.
+
+- [assumption]
+
+## Falsifiability
+
+How we'll know if we're wrong.
+
+| Signal | Indicates |
+|---|---|
+| [observation] | [right / wrong] |
+```
+
+Notes:
+- Optional section: Alternatives Rejected, Constraints.
+- Framework modules: JTBD, PR/FAQ.
+
+---
+
+### product.md (version-level)
+
+Type: **Definition**
+Question: *What is this product?*
+
+```markdown
+# [Product] [Version] — Product
+
+## Definition
+
+What the product does and who it's for. Plain language.
+
+## The Analogy
+
+"Think of what [known thing] does, but [key difference]."
+
+## Core Concepts
+
+| Concept | Definition |
+|---|---|
+| [term] | [meaning] |
+
+## Structure
+
+How the product is organized. Systems, surfaces, layers.
+
+[Diagram or description]
+
+## Flow
+
+The core user flow. What the user does, what the product does.
+
+[Step-by-step or flow diagram]
+
+## UX / Surfaces
+
+| Surface | Purpose | Key Elements |
+|---|---|---|
+| [surface] | [what] | [what's on it] |
+
+## Behavioral Rules
+
+What the product always does. What it never does.
+
+**Always:**
+- [rule]
+
+**Never:**
+- [rule]
+
+## Boundaries
+
+What the product is NOT. Explicit scope.
+
+---
+
+*[Date]*
+```
+
+Notes:
+- Analogy near the top — fastest way to communicate what's being built.
+- Should not include how it is built.
+- Does not define internal system mechanics. Those belong in `{system}-product.md`.
+- In multi-system: this is the meta-product definition. Systems get `{system}-product.md`.
+- Optional module: Loop (trigger → action → reward → investment → recurrence). Include when recurrence or compounding engagement matters. Remove when irrelevant.
+- Framework modules: JTBD, Loop, Non-goals.
+
+---
+
+### strategy.md
+
+Type: **Allocation**
+Question: *Where do we focus and how do we win?*
+
+```markdown
+# [Product] [Version] — Strategy
+
+## Target
+
+Who this is for. Be specific.
+
+## Wedge
+
+Where exactly we enter the market. The initial foothold.
+
+## Why Us
+
+Why we are uniquely positioned to win this wedge.
+
+## GTM / Distribution
+
+How users find and adopt the product.
+
+## Success Criteria
+
+| Metric | Target | Timeframe |
+|---|---|---|
+| [metric] | [number] | [by when] |
+
+## Non-Goals
+
+What we are explicitly NOT doing and why.
+
+- [non-goal] — [reason]
+
+## Risks
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| [risk] | [what breaks] | [what we do] |
+```
+
+Notes:
+- Framework modules: North Star / KPI, Non-goals, Opportunity Solution Tree.
+- Optional sections: Segments, Activation, Growth, Resources & Constraints.
+
+---
+
+## System Level
+
+### {system}-product.md
+
+Type: **Definition** (subordinate)
+Question: *What is this system?*
+
+```markdown
+# [System Name] — Product
+
+## Purpose
+
+One paragraph. What this system does for the user.
+
+## The Analogy
+
+What real-world role or process does this system mirror?
+
+Where it sits:
+  [Previous] → [THIS SYSTEM] → [Next]
+
+## Inputs
+
+What this system receives. What must exist before it runs.
+
+## Flow
+
+Step-by-step behavior. Happy path, then adaptation.
+
+### [Step 1]
+What happens. What the rules are.
+
+### [Step 2]
+...
+
+## Outputs
+
+What this system produces. What downstream systems receive.
+
+## Interaction Model
+
+What the system shows. What the user does. The rhythm.
+
+## Behavioral Rules
+
+**Always:**
+- [rule]
+
+**Never:**
+- [rule]
+
+## Connections
+
+| System | Direction | What Flows |
+|---|---|---|
+| [system] | → / ← / ↔ | [data] |
+
+## Success Signals
+
+How we know this system is working.
+
+- [signal]
+```
+
+Notes:
+- Does not redefine cross-system flows. Expands only within its boundary.
+
+---
+
+## Iteration Level
+
+### brief.md
+
+Type: **Experiment**
+Question: *What bet are we making and why?*
+
+```markdown
+# [Iteration Name] — Brief
+
+**Version:** [version]
+**Date:** [date]
+**Status:** [active / shipped / superseded]
+
+## Signals
+
+What we observed. The raw intel.
+
+- [signal]
+
+## Insight
+
+What the signals mean. The pattern.
+
+## Bet
+
+What we're doing about it and why we expect it to work.
+
+## What Changes
+
+| Area | Before | After |
+|---|---|---|
+| [what] | [current] | [new] |
+
+## What Doesn't Change
+
+Explicit. What we're leaving alone.
+
+## Phases
+
+| Phase | Scope | Depends On |
+|---|---|---|
+| [name] | [what ships] | [prereq] |
+
+## Success Criteria
+
+- [ ] [observable outcome]
+```
+
+Notes:
+- Framework modules: Hypothesis/experiment, Non-goals, Kill criteria.
+- Optional sections: Appetite, Loop changes.
+
+---
+
+## Phase Level
+
+### {phase-name}.impl.md
+
+Type: **Execution plan**
+Question: *How do we build this?*
+
+```markdown
+# [Phase Name] — Implementation
+
+**Iteration:** [parent iteration]
+**Status:** [not started / in progress / done]
+
+## Scope
+
+What this phase accomplishes. What ships.
+What is out of scope.
+
+## Decisions
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| [what] | [approach] | [why] |
+
+## Architecture
+
+How the pieces fit together.
+
+```
+[ASCII diagram]
+```
+
+## Key Flows
+
+### [Flow Name]
+
+```
+[Sequence diagram or step-by-step]
+```
+
+## Interfaces
+
+APIs, events, schemas, and component contracts.
+
+```typescript
+type Example = {
+  field: string
+}
+```
+
+## Build Order
+
+Each step independently testable.
+
+### 1. [Name]
+**Scope:** What gets built.
+**Validates:** What question this answers.
+
+### 2. [Name]
+**Depends on:** 1
+**Scope:** ...
+**Validates:** ...
+
+## Rollout / Migration
+
+How this gets deployed. Migration path if applicable.
+
+## Engineering Notes
+
+Discoveries during build. Propagate up if they change product direction.
+
+- [Date] — [Discovery]
+```
+
+Notes:
+- Framework-light. Technical and executable.
+- Framework modules: Non-goals (scope section).
+- Optional sections: Performance budget, Rollback plan.
+
+---
+
+## Engine Docs
+
+### twin.md
+
+Type: **Operational map**
+
+```markdown
+# [Product Name] — Twin
+
+Agent-readable operational map of the product.
+Not a source of truth for product decisions.
 
 Last updated: [Date]
 
 ## Master Diagram
 
-The whole codebase in one visual. Every system, every
-connection, every service.
-
-[ASCII diagram]
+[ASCII — the whole product in one visual]
 
 ## Systems
 
-### Product-Specific Systems
-
-#### [System Name]
+### [System Name]
+**What it does:** One line.
 **Capabilities:** What it can do today.
-**Features:** What users can do with it.
-**Key Flows:** [Step-by-step or flow diagram]
 **Maturity:** [mature / solid / basic / thin / minimal]
-**Connections:** What other systems it talks to.
 
-#### [System Name]
-...
+## Canonical Entities
 
-### Standard Systems
+Key data objects and their relationships.
 
-- **Auth:** [One-liner + product-specific quirks]
-- **Email:** [One-liner + quirks]
+## Interfaces
 
-## Routes / Endpoints
-
-| Route | Method | What It Does |
-|---|---|---|
-| ...   | ...    | ...          |
+How systems communicate. APIs, events, shared state.
 
 ## Architecture
 
-Services, data stores, external dependencies, deployment.
-
-[ASCII diagram]
+[ASCII — services, data stores, deployment]
 
 ## Dependencies
 
 External services the product relies on.
+
+## Known Gaps
+
+What's missing, broken, or incomplete.
 ```
 
 ---
 
-## 0b. Org Twin (twin.md — monorepo)
+### changelog.md
 
-Org-level twin. Describes the org's products, shared systems, and how they relate. Not a product twin — no routes, no endpoints, no architecture details.
+Type: **Decision record**
 
 ```markdown
-# Org Twin — [Org Name]
+# Changelog
 
-Last updated: [Date]
+## [Date] — [Change Name]
 
-## Products
+### Changes
+- `[file]` — what changed and why
 
-| Product | Description | Status |
-|---------|-------------|--------|
-| [product-a] | One-line description | Active / Planning / Maintenance |
-| [product-b] | ... | ... |
+### Drift
+- **[Drift]** `[file]` — spec says X, code does Y
+- **[Missing]** `[file]` — code with no spec
+- **[Stale]** `[file]` — spec references dead code
 
-## Shared Systems
-
-Systems, services, or infrastructure shared across products.
-
-### [Shared System Name]
-**Used by:** [product-a], [product-b]
-**What it does:** One-liner.
-
-## Product Relationships
-
-How products connect, share data, or depend on each other.
-
-[ASCII diagram or description]
-
-## Dependencies
-
-External services shared across the org.
-
-| Service | Used By | Purpose |
-|---------|---------|---------|
-| ...     | ...     | ...     |
+### Follow-up
+- [ ] [action needed]
 ```
 
 ---
 
-## 1. Vision Spec
+### signals/{date}--{slug}.md
 
-Canon. Durable. The manifesto. Answers: **why does this thing need to exist?**
-
-Not a product description. Not features. The argument for why this problem matters, why now, and what success looks like. Write it like a manifesto.
+Type: **Raw intel**
 
 ```markdown
-# [Project Name]
-
-## [Subtitle framing the scope and ambition]
-
-*A Manifesto*
-
+---
+type: [observation | feedback | research | transcript | metric]
+date: [YYYY-MM-DD]
+source: [where this came from]
+summary: [one-line key insight]
 ---
 
-*[Organization] — [Date]*
-
----
-
-## I. The Problem
-
-What problem has existed forever? Why has it persisted? What have
-people been doing about it with whatever tools they had?
-
-Don't start with technology. Start with the human condition.
-
----
-
-## II. The Deeper Structure
-
-Go one level deeper. Why does this problem exist the way it does?
-What are the underlying mechanics that make it hard?
-
----
-
-## III. The History of Attempts
-
-How has every generation tried to solve this? What did each attempt
-capture, and what was its structural limitation?
-
-| Era | Approach | What It Captured | Structural Limitation |
-|-----|----------|------------------|-----------------------|
-| ... | ...      | ...              | ...                   |
-
----
-
-## IV. What Changed
-
-What is different now? What combination of technology, cost, or
-cultural shift makes solving this possible today?
-
----
-
-## V. The Vision
-
-Define the core concept. Give it a name if it deserves one.
-This should be quotable.
-
----
-
-## VI. How It Works (Conceptual)
-
-Not the product. The conceptual architecture. Atomic units,
-structural innovation, how pieces relate. What you'd draw
-on a whiteboard.
-
----
-
-## VII. The Impact
-
-What changes for individuals? Communities? Society?
-Be concrete. Use scenarios.
-
----
-
-## VIII. The Long Horizon
-
-Where does this go in 10-20 years? Not a roadmap — the logical
-terminus of the idea.
-
----
-
-*[Organization]*
+[Raw content. However messy. The brief extracts the insight.
+Do not interpret here. Raw only.]
 ```
 
 ---
 
-## 2. Product Spec + Roadmap
-
-Canon. Durable. The product bible. Answers: **what are we building, how does it work, when does each piece ship?**
-
-```markdown
-# [Project Name] — Product Spec
-
-Last updated: [Date]
-
-> Pointer to Vision Spec for the "why." This is the "what" and "when."
-
----
-
-## 1. What We're Building
-
-Explain the product in plain language.
-
-### The Analogy
-
-Every product has a real-world analog — something people already
-understand. Find it. This is the most important paragraph in the
-spec. It grounds the team in reality.
-
-"Think of what [known thing] does, but [key difference]."
-
-The gap between the analog and what you're building IS the product.
-
-**The test:** [One sentence — how do you know it's working?]
-
-**The constraint:** [Team size, burn, runway, timeline.]
-
----
-
-## 2. Core Concepts
-
-Define the vocabulary. Key nouns, coined terms, precise definitions.
-This becomes the shared language for every human and agent.
-
----
-
-## 3. The Pipeline
-
-How does raw input become finished output? Stages, flows, diagrams.
-
-### 3.1 [Stage Name]
-What happens. Who/what does it. What it produces.
-
----
-
-## 4. The Data Model (Conceptual)
-
-Not a schema. Entities, relationships, what grows, what's static.
-
----
-
-## 5. The Actors
-
-| Actor | Role | Faces User? | The Job |
-|-------|------|-------------|---------|
-| ...   | ...  | ...         | ...     |
-
-### What Flows Between Them
-Data/artifact flow between actors.
-
----
-
-## 6. The Product Loop
-
-What makes users come back.
-
-### [Primary Loop]
-Trigger → Action → Reward → Investment → Next Trigger
-
-### [Secondary Loop] (if applicable)
-Same structure.
-
-### The Crossover
-How loops feed each other.
-
----
-
-## 7. Screens
-
-| Screen | Stage | Key Elements |
-|--------|-------|--------------|
-| ...    | ...   | ...          |
-
----
-
-## 8. Editorial / Design Philosophy
-
-Principles that shape every UI decision.
-
----
-
-## 9. Roadmap
-
-### Phase 1 — [Name] ([Date])
-
-**Goal:** One sentence.
-
-| Component | Tier | Notes |
-|-----------|------|-------|
-| ...       | T1/T2/T3 | ... |
-
-**T1** = Must ship. **T2** = Ship if possible. **T3** = Nice to have.
-
-**Does not ship:** [Explicit list]
-**Success looks like:** [Measurable outcomes]
-
-### Phase 2 — [Name]
-...
-
-### Phase 3 — [Name]
-...
-
-### The Long Horizon
-The reason the roadmap exists.
-
----
-
-*[Organization] — [Date]*
-```
-
----
-
-## 3. Phase Game Plan
-
-Rotates per phase. Maps to Initiative. Answers: **what are we doing in this phase?**
-
-```markdown
-# Phase [N] Game Plan — [Name]
-
-**Goal:** [One sentence from Product Spec roadmap]
-**Target date:** [Date]
-**Status:** [Not started | In progress | Complete | Archived]
-
----
-
-## 1. What This Phase Accomplishes
-
-Expand the goal. What can users do after this phase that they
-couldn't before?
-
----
-
-## 2. Constraints
-
-- **Timeline:** [Hard/soft]
-- **Resources:** [Team size, roles]
-- **Budget:** [Relevant costs]
-- **Dependencies:** [What must exist first]
-
----
-
-## 3. Systems
-
-| System | Type | Description |
-|--------|------|-------------|
-| ...    | New / Changed | One-line |
-
----
-
-## 4. What Ships
-
-| Component | Tier | System | Notes |
-|-----------|------|--------|-------|
-| ...       | T1   | ...    | ...   |
-
----
-
-## 5. What Does NOT Ship
-
-| Deferred Item | Reason | Revisit In |
-|---------------|--------|------------|
-| ...           | ...    | Phase N+1  |
-
----
-
-## 6. Success Criteria
-
-- [ ] [Observable outcome]
-
----
-
-## 7. Risks
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| ...  | ...    | ...        |
-
----
-
-## 8. Open Questions
-
-- [ ] [Question] — *Unresolved*
-- [x] [Question] — *Resolved: [answer]. Updated in [spec].*
-```
-
----
-
-## 4. System Product Spec
-
-Rotates per phase. Maps to Project. Answers: **what does this system do for the user?**
-
-Product-level only. No architecture. No code. A UX person should write and read this.
-
-```markdown
-# [System Name] — Product Spec
-
-## Purpose
-
-One paragraph. What is this system? What does it do for the user?
-
-### The Analogy
-
-What real-world role or process does this system mirror?
-Each system spec needs its own analog grounded in the
-product's top-level metaphor.
-
-Where it sits in the pipeline:
-
-  [Previous Step] → [THIS SYSTEM] → [Next Step]
-
-## Inputs
-
-What does this system receive? What must exist before it runs?
-
-## Interaction Model
-
-How does the user interact?
-- What does the system say/show?
-- What does the user do?
-- What's the rhythm?
-
-For backend systems, replace with **Trigger & Execution Model**.
-
-## The Flow
-
-Step-by-step behavior. Concrete, not abstract.
-Happy path + how the system adapts.
-
-### [Phase/Stage 1]
-What happens. What the rules are.
-
-### [Phase/Stage 2]
-...
-
-## Behavioral Rules
-
-Dos and don'ts. Use specific examples.
-
-Anti-patterns — what the system should NOT do and why.
-
-## Edge Cases
-
-| Scenario | Expected Behavior |
-|----------|-------------------|
-| ...      | ...               |
-
-## Connections
-
-| System | Relationship | What Flows |
-|--------|--------------|------------|
-| ...    | Feeds into / Receives from | ... |
-
-## Open Questions
-
-- [ ] [Question] — *Unresolved*
-- [x] [Question] — *Resolved: [answer]*
-```
-
----
-
-## 5. Design Spec
-
-Rotates per phase. A lightweight index. The real work lives in the design tool.
-
-```markdown
-# [System Name] — Design Spec
-
-**Designs:** [Link to Figma / Pencil / design tool]
-**PM Project:** [Link]
-**Status:** [Exploring | Ready for Dev | Implemented]
-
-## Notes
-
-Anything worth capturing that doesn't belong in a design tool
-comment or PM issue. Keep this short.
-```
-
----
-
-## 6. Implementation Spec
-
-Rotates per phase. Maps to Project. Answers: **how are we building this?**
-
-This is what an AI agent reads before entering plan mode. Must be accurate.
-
-```markdown
-# [System Name] — Implementation Spec
-
-## Status
-
-| Phase | Status | Notes |
-|-------|--------|-------|
-| 1. [Name] | Not started / In progress / Done | |
-| 2. [Name] | ... | |
-
----
-
-## Decisions
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| ...      | ...    | ...       |
-
----
-
-## System Architecture
-
-ASCII diagram showing all pieces — client, server, external
-services, and how they communicate.
-
-```
-[ASCII system diagram]
-```
-
----
-
-## [Critical Flow Name]
-
-Sequence diagram or step-by-step of the most important flow.
-Show timing, parallelism, critical path.
-
-```
-[ASCII sequence diagram]
-```
-
----
-
-## Wire Contracts
-
-Exact types, payloads, constraints.
-
-### [Contract Name]
-
-```typescript
-type ExamplePayload = {
-  field: string
-  field2: number
+### osis.json
+
+Type: **Machine state**
+
+```json
+{
+  "version": "1.0.0",
+  "type": "product",
+  "product": null,
+  "activeVersion": null,
+  "lastTwinUpdate": null,
+  "files": {}
 }
 ```
 
-| Field | Max Size | Notes |
-|-------|----------|-------|
-| ...   | ...      | ...   |
-
----
-
-## Directory Structure
-
-```
-path/to/system/
-├── index.ts
-├── module-a/
-└── module-b/
+Org variant:
+```json
+{
+  "version": "1.0.0",
+  "type": "org",
+  "org": null,
+  "products": {}
+}
 ```
 
 ---
 
-## Build Phases
+## Design Principles
 
-Each phase independently testable.
-
-### Phase 1: [Name]
-**Scope:** What gets built.
-**Validates:** What question this answers.
-
-### Phase 2: [Name]
-**Depends on:** Phase 1
-**Scope:** ...
-**Validates:** ...
-
----
-
-## Latency / Performance Budget
-
-If performance-sensitive, document the budget.
-
----
-
-## Engineering Notes
-
-Short bullets capturing discoveries from implementation.
-
-- [Date] — [Discovery]
-
-If a discovery changes UX or behavior, propagate up.
-
----
-
-## Open Questions
-
-- [ ] [Question] — *Unresolved*
-- [x] [Question] — *Resolved: [answer]*
-```
+1. **These are typed reasoning artifacts, not generic docs.** Each doc answers one question only.
+2. **Dense seeds beat exhaustive text.** Minimal default, modular expansion.
+3. **Non-goals matter as much as goals.** Explicit exclusions everywhere.
+4. **Structure must serve both humans and agents.** Human-readable markdown, agent-navigable semantics.
+5. **The system should feel alive, not ceremonial.** If a doc isn't being used to make decisions, it shouldn't exist.
+6. **Dates on everything.** Context decays.
+7. **Frameworks are invisible.** Applied automatically at the right moment. Max 1-2 per doc.
