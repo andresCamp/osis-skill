@@ -31,7 +31,11 @@ shift || true
 ENDPOINT="${OSIS_TELEMETRY_ENDPOINT:-https://osis.dev/api/t}"
 
 read_json_string() {
-  sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1
+  # Flatten the file to a single line before matching. JSON forbids literal
+  # newlines inside strings, so stripping them is safe and lets us tolerate
+  # multi-line formatting (prettier, manual edits, etc.) without regenerating
+  # the anonId every time someone reformats the file.
+  tr -d '\n\r' < "$1" 2>/dev/null | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -1
 }
 
 # ---------- uuid generator (cross-platform) ----------
@@ -65,13 +69,20 @@ if [ -z "$USER_ID" ]; then
     SKILL_VERSION=$(read_json_string "$VERSION_FILE" "version")
   fi
   CREATED_AT=$(date -u +%FT%TZ)
-  cat > "$USER_FILE" <<EOF
+  # Atomic write: write to a temp file in the same directory, then rename.
+  # Prevents a partial write (process killed mid-cat) from corrupting the
+  # user file — a corrupt file would force the next activation to regenerate
+  # a fresh UUID and lose the stable identity.
+  USER_DIR="$(dirname "$USER_FILE")"
+  TMP_USER_FILE=$(mktemp "${USER_DIR}/.osis-telemetry.XXXXXX" 2>/dev/null) || TMP_USER_FILE="${USER_FILE}.tmp.$$"
+  cat > "$TMP_USER_FILE" <<EOF
 {
   "anonId": "${USER_ID}",
   "createdAt": "${CREATED_AT}",
   "firstVersion": "${SKILL_VERSION}"
 }
 EOF
+  mv "$TMP_USER_FILE" "$USER_FILE"
 fi
 
 # ---------- repo identity (per-project) ----------

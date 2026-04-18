@@ -139,8 +139,10 @@ if [ "$1" = "--org" ]; then
     ORG_ANON_ID="r-$RANDOM$RANDOM-$(date +%s)"
   fi
 
-  # Create org osis.json
-  cat > "osis/osis.json" << EOF
+  # Create org osis.json atomically — tempfile + rename so a partial write
+  # can't corrupt the anonId and force later telemetry to emit null repoId.
+  TMP_OSIS_JSON=$(mktemp "osis/.osis.XXXXXX" 2>/dev/null) || TMP_OSIS_JSON="osis/osis.json.tmp.$$"
+  cat > "$TMP_OSIS_JSON" << EOF
 {
   "protocolShape": "1.0",
   "type": "org",
@@ -150,6 +152,7 @@ if [ "$1" = "--org" ]; then
   "products": {}
 }
 EOF
+  mv "$TMP_OSIS_JSON" "osis/osis.json"
 
   # Create repo-map twin placeholder
   cat > "osis/twin.md" << 'EOF'
@@ -203,7 +206,10 @@ REPO_CREATED_AT=$(date -u +%FT%TZ)
 # the manifest when earned docs (manifesto, thesis, product, brand, etc.)
 # are materialized during the first clarity session.
 if [ ! -f "osis/osis.json" ]; then
-  cat > "osis/osis.json" << EOF
+  # Atomic write — partial writes would leave a corrupt anonId and force
+  # later telemetry to emit null repoId for this repo forever.
+  TMP_OSIS_JSON=$(mktemp "osis/.osis.XXXXXX" 2>/dev/null) || TMP_OSIS_JSON="osis/osis.json.tmp.$$"
+  cat > "$TMP_OSIS_JSON" << EOF
 {
   "protocolShape": "1.0",
   "type": "product",
@@ -224,6 +230,7 @@ if [ ! -f "osis/osis.json" ]; then
   }
 }
 EOF
+  mv "$TMP_OSIS_JSON" "osis/osis.json"
 fi
 
 # Create README at osis root (only if it doesn't exist)

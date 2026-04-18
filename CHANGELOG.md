@@ -41,6 +41,20 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.5.1: Anon-key stability (2026-04-18)
+
+Fixes two stability edges in the pseudonymous identity layer: multi-line JSON formatting of `~/.claude/osis-telemetry.json` or `osis/osis.json` no longer regenerates the anonId, and both files are now written atomically via tempfile + rename so a partial write cannot corrupt the key.
+
+### Skill Changes
+
+- `track.sh`'s `read_json_string` flattens files with `tr` before the sed match. A reformatted JSON file (prettier, editor format-on-save, manual edit) keeps the same anonId instead of being treated as missing.
+- `track.sh`'s user-file creation writes to a same-directory tempfile and renames into place. A killed process mid-write no longer leaves a corrupt file that forces the next activation to mint a new UUID.
+- `onboard.sh`'s `osis/osis.json` scaffold (both org and product modes) now uses the same tempfile + rename pattern, so a crashed scaffold cannot leave a half-written osis.json with an unreadable anonId.
+
+(No structural changes. Protocol shape stays at 1.0.)
+
+---
+
 ## v1.5.0: Onboarding as a conversation (2026-04-18)
 
 Osis now onboards by having a real conversation instead of scaffolding empty docs. It loads your repo as context, asks one sharp question tuned to your product, and captures your current product thinking at the right altitude as you talk. The builder is the only source of truth; existing artifacts become signal, never canon.
