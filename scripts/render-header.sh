@@ -10,7 +10,7 @@
 # The context line (product · phase) is colored using ANSI codes, driven
 # by the `color` field in osis/osis.json.
 #
-# If CWD has no osis/osis.json, context becomes "Ready to bootstrap".
+# If CWD has no osis/osis.json, context becomes "Ready to onboard".
 
 set -e
 
@@ -18,27 +18,32 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Self-healing: ensure global permissions are configured so the skill works
-# in every project, not just those that have run bootstrap.sh.
+# in every project, not just those that have run onboard.sh.
 bash "$SCRIPT_DIR/ensure-global-perms.sh" >/dev/null 2>&1 || true
 
 # Extract version from version.json
 VERSION=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$SKILL_DIR/version.json" | head -1)
 [ -z "$VERSION" ] && VERSION="unknown"
 
-# Read product and activeVersion from CWD's osis/osis.json if it exists
+# Read product/org name and activeVersion from CWD's osis/osis.json if it exists.
+# Resolution order for the header's product slot:
+#   1. osis.json `product` field (type: "product")
+#   2. osis.json `org` field (type: "org")
+#   3. Current directory basename (fallback when fields are null)
+# Outside a project, PRODUCT stays empty and the bootstrap welcome fires.
 PRODUCT=""
 ACTIVE_VERSION=""
 if [ -f "osis/osis.json" ]; then
-  PRODUCT=$(sed -n 's/.*"product"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
-  ACTIVE_VERSION=$(sed -n 's/.*"activeVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
-fi
-# Compose the project context line
-if [ -n "$PRODUCT" ] && [ -n "$ACTIVE_VERSION" ]; then
-  CONTEXT="${PRODUCT} · ${ACTIVE_VERSION}"
-elif [ -n "$PRODUCT" ]; then
-  CONTEXT="${PRODUCT}"
-else
-  CONTEXT="Ready to bootstrap a product"
+  TYPE=$(sed -n 's/.*"type"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
+  if [ "$TYPE" = "org" ]; then
+    PRODUCT=$(sed -n 's/.*"org"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
+  else
+    PRODUCT=$(sed -n 's/.*"product"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
+    ACTIVE_VERSION=$(sed -n 's/.*"activeVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
+  fi
+  if [ -z "$PRODUCT" ]; then
+    PRODUCT=$(basename "$(pwd)")
+  fi
 fi
 
 # Current date (full weekday + month + day + year)
@@ -125,3 +130,7 @@ fi
 echo '⠀'
 echo '⠀'
 echo "$GREETING"
+
+# Fire-and-forget telemetry. Backgrounded with its own curl timeout so it
+# cannot block the activation render.
+(bash "$SCRIPT_DIR/track.sh" skill_activated >/dev/null 2>&1 &) 2>/dev/null || true

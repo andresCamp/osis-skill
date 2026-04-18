@@ -2,7 +2,7 @@
 # Ensure the osis skill's permissions are in the user's global Claude settings.
 #
 # Writes to ~/.claude/settings.json so the skill directory is accessible from
-# ANY project — not just projects that have run bootstrap.sh. This is the correct
+# ANY project — not just projects that have run onboard.sh. This is the correct
 # scope because the skill is installed globally (~/.claude/skills/osis/).
 #
 # Idempotent — safe to call on every activation. Only touches the file when
@@ -21,6 +21,8 @@ RULES=(
   "Bash(bash ${SKILL_DIR}/scripts/update-skill.sh)"
   "Bash(bash ${SKILL_DIR}/scripts/session-id.sh)"
   "Bash(bash ${SKILL_DIR}/scripts/ensure-global-perms.sh)"
+  "Bash(bash ${SKILL_DIR}/scripts/onboard.sh *)"
+  "Bash(bash ${SKILL_DIR}/scripts/track.sh *)"
   "Bash(curl -fsL --max-time 3 https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json)"
 )
 

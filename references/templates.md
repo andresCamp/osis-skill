@@ -1,7 +1,7 @@
 # Osis Protocol v1.0.0 — Templates
 
 > Working draft. Minimal canonical shapes for each doc type.
-> Core spine required. Sections removable. Modules optional.
+> A repo does not need every doc on day one. When a doc is instantiated, keep its spine. Sections removable. Modules optional.
 
 ---
 
@@ -86,6 +86,7 @@ What we will not do, even if it would be easier or more profitable.
 Notes:
 - Mostly native writing. Should not feel framework-generated.
 - Optional section: Impact, Long Horizon.
+- Capture the builder's current declaration, not polished launch copy. Rough but true beats smooth but stale.
 
 ---
 
@@ -126,6 +127,7 @@ we [key differentiator].
 Notes:
 - Mostly native writing.
 - Optional section: Personality.
+- Materialize when language, positioning, or taste are already acting as real constraints, or when downstream output keeps drifting.
 
 ---
 
@@ -181,6 +183,7 @@ Reusable interface patterns and their rules.
 Notes:
 - Not a coded component inventory. Shared interface primitives, not an exhaustive catalog.
 - Actual coded components belong closer to implementation.
+- Materialize when the product already has a strong visual language, or when agent output needs interface constraints to stay consistent.
 
 ---
 
@@ -221,13 +224,17 @@ How we'll know if we're wrong.
 Notes:
 - Optional section: Alternatives Rejected, Constraints.
 - Framework modules: JTBD, PR/FAQ.
+- The first version thesis can start rough. Its job is to capture the current strategic bet, not to sound final.
 
 ---
 
-### product.md (version-level)
+### core/product.md (top-level system)
 
 Type: **Definition**
 Question: *What is this product?*
+Path: `{version}/core/product.md`
+
+In single-system products, this IS the whole product. In multi-system products, this is the meta-product (composition, macro flows, how systems connect).
 
 ```markdown
 # [Product] [Version] — Product
@@ -286,8 +293,8 @@ What the product is NOT. Explicit scope.
 Notes:
 - Analogy near the top — fastest way to communicate what's being built.
 - Should not include how it is built.
-- Does not define internal system mechanics. Those belong in `{system}-product.md`.
-- In multi-system: this is the meta-product definition. Systems get `{system}-product.md`.
+- Does not define internal system mechanics. Those belong in `{system}/product.md`.
+- In multi-system: this is the meta-product. Other systems get their own `{system}/product.md`.
 - Optional module: Loop (trigger → action → reward → investment → recurrence). Include when recurrence or compounding engagement matters. Remove when irrelevant.
 - Framework modules: JTBD, Loop, Non-goals.
 
@@ -344,10 +351,13 @@ Notes:
 
 ## System Level
 
-### {system}-product.md
+### {system}/product.md
 
 Type: **Definition** (subordinate)
 Question: *What is this system?*
+Path: `{version}/{system}/product.md`
+
+A system warrants its own folder when it's a different app, deployment, or distinct surface. Most things are features within an existing system, not new systems.
 
 ```markdown
 # [System Name] — Product
@@ -417,6 +427,9 @@ Notes:
 
 Type: **Experiment**
 Question: *What bet are we making and why?*
+Path: `{version}/{system}/{iteration-slug}/brief.md`
+
+The iteration lives in the system that owns the product direction. Phases inside the iteration may touch other systems' code; the brief captures that. Cross-cutting refactors (no product direction change) go to the version-level changelog, not a brief.
 
 ```markdown
 # [Iteration Name] — Brief
@@ -463,6 +476,7 @@ Explicit. What we're leaving alone.
 Notes:
 - Framework modules: Hypothesis/experiment, Non-goals, Kill criteria.
 - Optional sections: Appetite, Loop changes.
+- The first brief is often just the current live bet captured cleanly. It does not need to be novel to be worth writing down.
 
 ---
 
@@ -472,6 +486,7 @@ Notes:
 
 Type: **Execution plan**
 Question: *How do we build this?*
+Path: `{version}/{system}/{iteration-slug}/{phase-name}.impl.md`
 
 ```markdown
 # [Phase Name] — Implementation
@@ -642,10 +657,12 @@ Type: **Machine state**
 
 ```json
 {
-  "version": "1.0.0",
+  "protocolShape": "1.0",
   "type": "product",
   "product": null,
   "activeVersion": null,
+  "anonId": "uuid-v4",
+  "createdAt": "ISO-8601",
   "lastTwinUpdate": null,
   "files": {}
 }
@@ -654,9 +671,11 @@ Type: **Machine state**
 Org variant:
 ```json
 {
-  "version": "1.0.0",
+  "protocolShape": "1.0",
   "type": "org",
   "org": null,
+  "anonId": "uuid-v4",
+  "createdAt": "ISO-8601",
   "products": {}
 }
 ```

@@ -6,7 +6,7 @@
 
 ## What Osis Is
 
-Osis is not a documentation tool. It is a **typed reasoning system for product development** — a system for maintaining clean, evolving product context across abstraction layers.
+Osis is not a documentation tool. It is a **product clarity system** and a **typed reasoning system for product development** — a system for maintaining clean, evolving product context across abstraction layers.
 
 The docs are not "docs" in the traditional sense. They are definitions of a slice of the product at a specific level of abstraction. Each document has a clear identity, meaning, and role in the system — like types in programming. A `thesis.md` is always a hypothesis. A `brief.md` is always an experiment. A `product.md` is always a definition. Agents can rely on this.
 
@@ -16,59 +16,57 @@ The long-term goal is autonomous product decision-making. The real purpose of th
 
 The `osis/` folder IS the digital twin of the company and product. The `twin.md` file is one distillation of the codebase. The whole protocol is the twin.
 
+Osis is also the version control layer for product thinking. Product beliefs, constraints, and bets should be captured in the right doc at the right altitude, even when they are still rough. The goal is not polished prose on day one. The goal is truthful constraints that agents can execute against and future clarity sessions can refine.
+
 **Code is cheap. Product clarity is everything.** Agents can generate millions of lines of code in a day. The bottleneck is knowing what to build and why. Osis is the funnel that turns ethereal product thinking into executable clarity.
 
 ---
 
 ## Core Principles
 
-1. **Typed reasoning artifacts.** Each doc answers one question only. Fixed purpose, expected semantics, predictable shape. Not rigid templates — recognizable kinds of thinking. Agents know how to interpret each doc, can connect them together, can reason across layers.
+1. **Typed reasoning artifacts.** Each doc answers one question only. Fixed purpose, expected semantics, predictable shape. Agents can rely on this.
 
-2. **The clarity funnel.** Every layer is a tighter ring. Ethereal → concrete. Org → product → version → system → iteration → phase → plan mode → code. Each layer constrains the one below it.
+2. **Product clarity is the job.** Everything in Osis exists to improve product clarity. If a doc, section, or conversation path does not improve clarity, it is noise.
 
-3. **Top-down compliance.** The product complies with the org. The version complies with the product. The iteration complies with the version. The pattern repeats down the funnel.
+3. **The clarity funnel.** Every layer is a tighter ring. Ethereal → concrete. Shared charter → product → version → system → iteration → phase → plan mode → code. Each layer constrains the one below it.
 
-4. **Dense seeds beat exhaustive text.** LLMs are good at expanding from dense seeds. Docs should be minimal, expandable, modular, easy to keep fresh. A short doc that's accurate beats a long one that's stale.
+4. **Capture now, refine later.** Osis should capture current thinking as it exists today, even if rough, and place it at the right altitude from day one. Refinement comes in later clarity sessions.
 
-5. **Modular structure.** The protocol applies the right structure to the situation. Same protocol, adaptive shape.
+5. **Protocol spine, adaptive shape.** The set of doc types is fixed. The instantiated shape in a repo is adaptive. Not every doc needs to exist on day one, but when a doc exists it keeps its semantic spine.
 
-6. **Org and system are the same abstraction.** Organizational routing layers — added when complexity warrants it, skipped when there's only one thing.
+6. **Constraints are leverage.** The docs are the constraint force agents read when doing product thinking or writing code. If ambiguity is degrading output quality, Osis should force the missing constraint into existence through conversation.
 
-7. **Implementation is the handoff boundary.** Osis owns product thinking through tech decisions. Plan mode owns syntax understanding and execution. Clean separation.
+7. **The builder is the source of truth.** Only the builder declares what the product is, why it matters, and what constraints govern it. Existing code, README files, landing copy, old docs, decks, and other artifacts are evidence of prior thinking. They sharpen Osis's questions but never become canon on their own. Osis never tells the builder what their product is. It asks, listens, and places aligned thinking at the right altitude.
 
-8. **Docs are collaboration vessels** between user and agent. The interaction surface is: talk to agent, agent modifies doc, human reads docs, makes changes or talks to agent again. The conversation is where the value lives.
+8. **Shared charter is optional.** The top layer exists only when multiple products truly share one parent set of beliefs and constraints. Repo topology does not create a charter by itself.
 
-9. **Archive over mutate.** Previous iterations and versions are the archive. The folder structure preserves the paper trail.
+9. **Implementation is the handoff boundary.** Osis owns product thinking through tech decisions. Plan mode owns syntax understanding and execution. Clean separation.
 
-10. **Non-goals matter as much as goals.** Explicit exclusions prevent scope creep and misaligned execution.
+10. **Docs are collaboration vessels.** The interaction surface is: talk to agent, agent updates the right docs, human reads them, then the next session starts from a stronger clarity base.
 
-11. **Don't be eager.** Code bugs don't touch osis unless they reveal a product/UX decision. Engage when there's a real product decision to make.
+11. **Archive over mutate.** Previous iterations and versions are the archive. The folder structure preserves the paper trail.
 
-12. **Osis is opinionated.** The structure IS the value. Modular ≠ shapeless.
+12. **Upward propagation.** Discoveries at lower layers that invalidate higher-layer assumptions must be pushed up immediately (phase → iteration → version → product). Prevents silent drift and closes the loop structurally.
 
-13. **The flywheel.** Docs capture product and technical decisions → single source of truth → better informed future decisions → faster building. Every rotation compounds.
-
-14. **Upward propagation.** Discoveries at lower layers that invalidate higher-layer assumptions must be pushed up immediately (phase → iteration → version). Prevents silent drift and closes the loop structurally.
-
-15. **Local clarity.** Each doc should be understandable in isolation, but more powerful in context.
+13. **Local clarity.** Each doc should be understandable in isolation, but more powerful in context.
 
 ---
 
 ## The Clarity Funnel
 
 ```
-Org: "We believe X about the world"              [philosophical]
-  Product: "This problem matters"                 [philosophical]
-    Version: "Here's how we're manifesting it"    [strategic]
-      System: "Here's a distinct surface"         [strategic/tactical]
-        Iteration: "Here's the bet right now"     [tactical]
-          Phase: "Here's how we're building it"   [executable]
+[Shared Charter]: "We believe X about the world" [philosophical, optional]
+  Product: "This problem matters"                [philosophical]
+    Version: "Here's how we're manifesting it"   [strategic]
+      System: "Here's a distinct surface"        [strategic/tactical]
+        Iteration: "Here's the bet right now"    [tactical]
+          Phase: "Here's how we're building it"  [executable]
             → plan mode → code
 ```
 
 | Level | Nature | What it captures |
 |---|---|---|
-| **Org** | Philosophical | Who we are, what we believe, how we work |
+| **Shared Charter** | Philosophical | Who we are, what we believe, how we work across multiple products |
 | **Product** | Philosophical | Why this problem matters, our enduring declaration |
 | **Version** | Strategic | What we're building, for whom, how it works, how we win |
 | **System** | Strategic/Tactical | A distinct, encapsulated product surface with its own inputs, outputs, and behavior |
@@ -76,6 +74,23 @@ Org: "We believe X about the world"              [philosophical]
 | **Phase** | Executable | Tech decisions in logical, testable chunks → plan mode |
 
 ---
+
+## Observed vs Committed Shape
+
+On first contact, Osis can reliably observe only some things:
+
+- repo and system topology
+- current product behavior in code
+- existing docs, copy, and artifacts
+- recurring language, tensions, and visible constraints
+
+This is the **observed shape**.
+
+The **committed shape** is what the builder actually stands behind after conversation: the current manifesto framing, the current thesis, the current design constraints, the current shared charter, and so on.
+
+The first session moves observed shape into committed shape. Existing artifacts are imported as signal, never promoted directly into truth. The builder is the only source of committed truth. The goal is to leave the session with the builder's current product thinking captured in the protocol at the right altitude, even if the docs are still rough.
+
+Onboarding is the first clarity session. It does not end at the CTA; the CTA starts it. The session continues until current thinking is captured at the right altitudes, then settles naturally into normal Consult mode.
 
 ## Funnel Navigation
 
@@ -93,6 +108,13 @@ But the funnel is **directional guidance, not a rigid workflow**.
 
 This keeps Osis opinionated in structure without turning it into a serial ritual.
 
+In practice:
+
+- A product repo usually starts sparse.
+- The first session captures the builder's current thinking into the right docs.
+- Future sessions refine and expand the shape as new constraints become real.
+- If a constraint is already clearly present in the product, Osis should codify it instead of waiting for perfect prose.
+
 ---
 
 ## Doc Types
@@ -103,13 +125,14 @@ Each doc is a typed node in a reasoning graph. Edges are the structural relation
 
 | Doc | Type Signature | Level | Purpose |
 |---|---|---|---|
-| `charter.md` | Operating constraints | Org | Mission, values, non-negotiables, decision principles |
+| `charter.md` | Operating constraints | Shared Charter / Org | Mission, values, non-negotiables, decision principles |
 | `manifesto.md` | Declaration | Product | Why the problem matters, what's broken, what we refuse |
 | `brand.md` | Expression | Product | Voice, tone, personality, positioning, language |
 | `design-system.md` | Interface rules | Product | Visual language, interaction patterns, shared primitives |
 | `thesis.md` | Hypothesis | Version | The strategic bet this version makes |
-| `product.md` | Definition | Version / System | What the product (or system) is |
 | `strategy.md` | Allocation | Version | Where we focus and how we win |
+| `core/product.md` | Definition | System (top-level) | What the whole product is — composition, macro flows |
+| `{system}/product.md` | Definition | System | What this subsystem is — internal flow, inputs/outputs |
 | `brief.md` | Experiment | Iteration | Signal, insight, the tactical bet |
 | `{phase}.impl.md` | Execution plan | Phase | Tech decisions → handoff to plan mode |
 
@@ -119,9 +142,12 @@ Each doc is a typed node in a reasoning graph. Edges are the structural relation
 |---|---|---|
 | `twin.md` | Product | Agent-readable operational map. Descriptive, not prescriptive — reflects the system, does not define product decisions |
 | `changelog.md` | Version | Chronological record of decisions and spec changes |
+| `inbox/{signal}.md` | Root | Pre-triage signal. Imported artifacts, pasted notes, and unresolved observations land here before routing |
 | `{signal}.md` | Iteration (`signals/`) | Raw intel that informed the brief |
 | `osis.json` | Root | Machine state, routing, file graph |
 | `README.md` | Root | Static protocol explainer |
+
+Preexisting docs, marketing copy, decks, and notes should be loaded into `osis/inbox/` as signal when they are relevant to onboarding or a clarity session. They inform the conversation, but they do not become canon automatically.
 
 ---
 
@@ -132,10 +158,14 @@ Each doc is a typed node in a reasoning graph. Edges are the structural relation
 - Strategy = market, wedge, focus, success criteria, non-goals
 - Product should not include how it is built
 
-**Version product.md vs {system}-product.md**
-- Version `product.md` defines the product as a whole: composition, macro flows, and how systems connect.
-- `{system}-product.md` defines a subsystem: internal flow, inputs/outputs, and local behavior.
-- Version product does not define internal system mechanics. System products do not redefine cross-system flows.
+**core/product.md vs {system}/product.md**
+- `core/product.md` defines the product as a whole: composition, macro flows, and how systems connect. In single-system products, it is literally the whole product.
+- `{system}/product.md` defines a subsystem: internal flow, inputs/outputs, and local behavior.
+- Core product does not define internal system mechanics. System products do not redefine cross-system flows.
+
+**System bar (high)**
+- A system is significant: a different app, a different deployment, or a distinct surface that interfaces with the main product.
+- Most things are features within an existing system, not new systems. When in doubt, it's a feature.
 
 **Brand vs Design System**
 - Brand = identity, voice, positioning, language, emotional expression
@@ -149,40 +179,123 @@ Each doc is a typed node in a reasoning graph. Edges are the structural relation
 
 ## Single vs Multi System
 
-| Scenario | Version docs | System docs |
-|---|---|---|
-| **Single system** | `thesis.md` + `product.md` + `strategy.md` | — |
-| **Multi system** | `thesis.md` + `product.md` + `strategy.md` | `{system}-product.md` per system |
+Every system is the same shape: a folder with `product.md` and iteration folders inside. The system layer is recursive — `core/` always exists as the top-level system; satellites get added when complexity warrants it.
 
-In multi-system: `product.md` stays at the version level as the meta-product definition. Each system gets a subordinate product doc (`interview-product.md`, `story-graph-product.md`, etc.).
+| Scenario | Version layout | System folders |
+|---|---|---|
+| **Single system** | `thesis.md` + `strategy.md` + `changelog.md` + `core/` | `core/` only — its `product.md` IS the whole product |
+| **Multi system** | `thesis.md` + `strategy.md` + `changelog.md` + `core/` + `{system}/` | `core/product.md` is the meta-product; each `{system}/product.md` defines its own scope |
+
+The same `core/product.md` doc evolves naturally as systems get added: it scales from "the whole product" (single-system) to "the meta-product describing composition and how systems connect" (multi-system) without restructuring.
 
 ---
 
 ## Folder Structure
 
+Canonical locations, not a mandatory checklist. Many projects start sparse and materialize more docs over time.
+
 ```
 osis/
   osis.json                           ← machine state, file graph
   README.md                           ← static
-  charter.md                          ← org
+  charter.md                          ← shared charter (only when multiple products share it)
   manifesto.md                        ← product
   brand.md                            ← product
   design-system.md                    ← product
   twin.md                             ← product (engine)
+  inbox/                              ← root (engine: imported and pre-triage signals)
+    {date}--{slug}.md
   {version}/                          ← e.g. v0/, v1/
     thesis.md
-    product.md                        ← the product definition
     strategy.md
-    changelog.md
-    {system}-product.md               ← only if multi-system
-    {iteration-slug}/                 ← e.g. iteration-1--activation/
-      brief.md
-      signals/
-        {date}--{slug}.md
-      {phase-name}.impl.md            ← e.g. core-ux.impl.md
+    changelog.md                      ← single source of truth for all iterations
+    core/                             ← always exists; the top-level system
+      product.md
+      {iteration-slug}/               ← e.g. iteration-1--launch/
+        brief.md
+        signals/
+          {date}--{slug}.md
+        {phase-name}.impl.md          ← e.g. core-ux.impl.md
+    {system}/                         ← only when complexity warrants
+      product.md
+      {iteration-slug}/
+        brief.md
+        signals/
+        {phase-name}.impl.md
 ```
 
-For monorepos: org-level `osis/` holds `charter.md`, `osis.json` (type: "org", products map), and symlinks to product `osis/` directories.
+For monorepos: the root `osis/` acts as a routing map. It holds `osis.json` (type: `"org"`, products map), `twin.md` as the repo/product map, and optional `charter.md` when multiple products truly share one. Product-local `osis/` directories remain canonical.
+
+---
+
+## osis.json Schema
+
+Machine state for the osis folder. Consumed by the skill at load time (mode detection, file manifest) and by the migration agent (protocol shape comparison).
+
+### Product osis.json
+
+```json
+{
+  "protocolShape": "1.0",
+  "product": "Product Name",
+  "activeVersion": "v1",
+  "lastTwinUpdate": "YYYY-MM-DD",
+  "anonId": "uuid",
+  "createdAt": "ISO timestamp",
+  "color": "blue",
+  "files": {
+    "twin": "osis/twin.md",
+    "inbox": [],
+    "manifesto": "osis/manifesto.md",
+    "brand": "osis/brand.md",
+    "design-system": "osis/design-system.md",
+    "v1": {
+      "thesis": "osis/v1/thesis.md",
+      "strategy": "osis/v1/strategy.md",
+      "changelog": "osis/v1/changelog.md",
+      "systems": {
+        "core": {
+          "product": "osis/v1/core/product.md"
+        }
+      }
+    }
+  }
+}
+```
+
+### Org osis.json (monorepo)
+
+```json
+{
+  "protocolShape": "1.0",
+  "type": "org",
+  "org": "Org Name",
+  "anonId": "uuid",
+  "createdAt": "ISO timestamp",
+  "products": {
+    "product-a": "apps/product-a/osis",
+    "product-b": "apps/product-b/osis"
+  }
+}
+```
+
+### Fields
+
+| Field | Purpose |
+|---|---|
+| `protocolShape` | Which protocol shape the folder follows (e.g. `"1.0"`). Migration compares this against the skill's current protocol version. |
+| `product` / `org` | Human-readable name, shown in the activation header. |
+| `type` | `"product"` (default) or `"org"` (monorepo root). |
+| `activeVersion` | Which version folder (`v0`, `v1`) is the active build target. |
+| `anonId` | Stable repo UUID for pseudonymous telemetry. Minted once during onboarding; never modified. |
+| `createdAt` | ISO timestamp from first onboarding. Never modified. |
+| `files` | Flat manifest of the docs that are currently materialized. Missing docs are simply absent until created. Regenerated by onboarding, migration, and maintenance modes. |
+
+### Protocol Shape
+
+`protocolShape` tracks what protocol version the folder is in, independent of the skill version. The skill declares its current protocol version at the top of `references/protocol.md` (`# Osis Protocol v{X}`). When `osis.json.protocolShape` is behind the skill's declared protocol version, migration runs as part of the update sequence (see `references/migration.md`).
+
+Skill releases that do not change folder structure (new modes, fixes, internal features) do not bump the protocol version, so no migration runs. Only releases that add, rename, reshape, or remove docs in the protocol bump the protocol version.
 
 ---
 
@@ -264,7 +377,8 @@ RICE-lite, Tenets, DIBB, Appetite, Kill criteria, 11-star
 minimal canonical shape + optional modules
 ```
 
-- Core spine required
+- Doc spine required when the doc exists
+- The project does not need every doc on day one
 - Sections removable
 - Modules optional
 - Every section must materially improve the quality, speed, or correctness of a decision
@@ -291,7 +405,7 @@ Iteration = product direction (the bet). Phase = unit of work (the execution sli
 
 **Thesis lives at version level.** The manifesto persists across versions; the thesis for how to attack it changes.
 
-**product.md exists at version level in both single and multi system.** In multi-system, it's the meta-product; systems get `{system}-product.md`.
+**Every system is a folder with `product.md`.** `core/` always exists. In single-system, `core/product.md` IS the whole product. In multi-system, `core/product.md` is the meta-product and satellites get their own `{system}/product.md`.
 
 ---
 

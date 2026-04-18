@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "title": "The clarity funnel",
-  "description": "Osis is now a typed reasoning system. New clarity funnel, iterations, frameworks, and modular templates."
+  "version": "1.5.0",
+  "title": "Onboarding as a conversation",
+  "description": "Osis now onboards by having a real conversation. It loads your repo as context, asks one sharp question, and captures your current product thinking at the right altitude. No empty docs, no reflection quiz."
 }

@@ -1,11 +1,11 @@
 #!/bin/bash
-# Initialize osis doc structure for a project
+# Initialize osis doc structure for a project (first-run onboarding)
 # Usage:
-#   bash bootstrap.sh [product-version]         — scaffold product osis
-#   bash bootstrap.sh --org [org-name]          — scaffold org osis (monorepo)
+#   bash onboard.sh [product-version]         — scaffold product osis
+#   bash onboard.sh --org [org-name]          — scaffold org osis (monorepo)
 # Examples:
-#   bash bootstrap.sh mystory-v1
-#   bash bootstrap.sh --org cloudnine
+#   bash onboard.sh v1
+#   bash onboard.sh --org cloudnine
 
 set -e
 
@@ -24,6 +24,8 @@ set -e
 #        requires an explicit allow rule.
 #      - bash invocation of scripts/update-skill.sh: the one-tap upgrade flow,
 #        runs as an agent tool call when the user says yes to the release banner.
+#      - bash invocation of scripts/track.sh: fire-and-forget telemetry for
+#        activation, onboarding, and upgrade events.
 #
 #      Note: the auto-update remote version check (`curl ...`) also runs as
 #      SKILL.md bash injection, but its exact-match allow rule is handled
@@ -39,6 +41,8 @@ ensure_skill_permissions() {
   local rules=(
     "Bash(bash ${skill_dir}/scripts/render-header.sh)"
     "Bash(bash ${skill_dir}/scripts/update-skill.sh)"
+    "Bash(bash ${skill_dir}/scripts/onboard.sh *)"
+    "Bash(bash ${skill_dir}/scripts/track.sh *)"
     "Bash(bash ${skill_dir}/scripts/session-id.sh)"
     'Bash(curl -fsL --max-time 3 https://raw.githubusercontent.com/andresCamp/osis-skill/main/version.json)'
   )
@@ -126,21 +130,34 @@ if [ "$1" = "--org" ]; then
 
   mkdir -p "osis"
 
+  # Stable repo anonId for telemetry.
+  if command -v uuidgen >/dev/null 2>&1; then
+    ORG_ANON_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+  elif [ -r /proc/sys/kernel/random/uuid ]; then
+    ORG_ANON_ID=$(cat /proc/sys/kernel/random/uuid)
+  else
+    ORG_ANON_ID="r-$RANDOM$RANDOM-$(date +%s)"
+  fi
+
   # Create org osis.json
   cat > "osis/osis.json" << EOF
 {
-  "version": "1.0.0",
+  "protocolShape": "1.0",
   "type": "org",
   "org": "${ORG}",
+  "anonId": "${ORG_ANON_ID}",
+  "createdAt": "$(date -u +%FT%TZ)",
   "products": {}
 }
 EOF
 
-  # Create org charter placeholder
-  cat > "osis/charter.md" << 'EOF'
-# [Org Name] — Charter
+  # Create repo-map twin placeholder
+  cat > "osis/twin.md" << 'EOF'
+# Repo Map Twin
 
-<!-- Populated by osis bootstrap scan -->
+Agent-readable map of the products and systems in this repo.
+
+<!-- Generated during osis onboarding -->
 EOF
 
   echo ""
@@ -148,13 +165,15 @@ EOF
   echo ""
   echo "  osis/"
   echo "    osis.json      (type: org)"
-  echo "    charter.md"
+  echo "    twin.md"
   echo ""
   echo "Next steps:"
   echo "  1. Add products to osis.json"
-  echo "  2. Create symlinks: ln -s ../apps/product/osis osis/product"
-  echo "  3. Run 'osis' to bootstrap each product"
+  echo "  2. Run 'osis' to onboard the primary product"
+  echo "  3. Add charter.md later if shared parent constraints become real"
   echo ""
+
+  bash "$SCRIPT_DIR/track.sh" skill_onboarded mode=org >/dev/null 2>&1 || true
   exit 0
 fi
 
@@ -169,25 +188,38 @@ fi
 
 mkdir -p "$BASE"
 
+# Generate a stable repo anonId for telemetry (non-PII).
+if command -v uuidgen >/dev/null 2>&1; then
+  REPO_ANON_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+elif [ -r /proc/sys/kernel/random/uuid ]; then
+  REPO_ANON_ID=$(cat /proc/sys/kernel/random/uuid)
+else
+  REPO_ANON_ID="r-$RANDOM$RANDOM-$(date +%s)"
+fi
+REPO_CREATED_AT=$(date -u +%FT%TZ)
+
 # Create osis.json (only if it doesn't exist — don't overwrite org json)
+# Initial manifest lists ONLY always-created docs. The subagent regenerates
+# the manifest when earned docs (manifesto, thesis, product, brand, etc.)
+# are materialized during the first clarity session.
 if [ ! -f "osis/osis.json" ]; then
   cat > "osis/osis.json" << EOF
 {
-  "version": "1.0.0",
+  "protocolShape": "1.0",
   "type": "product",
   "product": null,
   "activeVersion": "${VERSION}",
+  "anonId": "${REPO_ANON_ID}",
+  "createdAt": "${REPO_CREATED_AT}",
   "lastTwinUpdate": null,
   "files": {
     "twin": "osis/twin.md",
-    "manifesto": "osis/manifesto.md",
-    "brand": "osis/brand.md",
-    "design-system": "osis/design-system.md",
+    "inbox": [],
     "${VERSION}": {
-      "thesis": "osis/${VERSION}/thesis.md",
-      "product": "osis/${VERSION}/product.md",
-      "strategy": "osis/${VERSION}/strategy.md",
-      "changelog": "osis/${VERSION}/changelog.md"
+      "changelog": "osis/${VERSION}/changelog.md",
+      "systems": {
+        "core": {}
+      }
     }
   }
 }
@@ -204,8 +236,8 @@ This folder contains the product docs for this project, managed by the [osis pro
 Osis is a typed reasoning system for product development. It maintains clean, evolving product context across abstraction layers.
 
 - **`twin.md`** — what the product IS. Code compressed into natural language.
-- **`manifesto.md`** — why this product exists. The enduring declaration.
-- **`{version}/`** — what the product is BECOMING. Thesis, product definition, strategy.
+- **Product constraint docs** — added as clarity becomes real (`manifesto.md`, `brand.md`, `design-system.md`, etc.)
+- **`{version}/`** — what the product is BECOMING. Thesis, strategy, and system folders (`core/` always; satellites when complexity warrants).
 
 ## For AI Agents
 
@@ -213,7 +245,7 @@ Before starting work on any product feature, read in this order:
 
 1. `osis.json` — understand the current state
 2. `twin.md` — understand the product as it exists today
-3. Active version `product.md` — understand what the product is
+3. Active version `core/product.md` — understand what the product is
 4. Active iteration `brief.md` — understand the current bet
 5. Relevant `{phase}.impl.md` — understand how to build it
 
@@ -235,72 +267,51 @@ Not a source of truth for product decisions.
 EOF
 fi
 
-# Create product-level placeholders (only if they don't exist)
-if [ ! -f "osis/manifesto.md" ]; then
-  cat > "osis/manifesto.md" << 'EOF'
-# [Product Name]
-
-<!-- Run osis bootstrap to build this with guidance -->
-EOF
-fi
-
-if [ ! -f "osis/brand.md" ]; then
-  cat > "osis/brand.md" << 'EOF'
-# [Product Name] — Brand
-
-<!-- Run osis bootstrap to build this with guidance -->
-EOF
-fi
-
-if [ ! -f "osis/design-system.md" ]; then
-  cat > "osis/design-system.md" << 'EOF'
-# [Product Name] — Design System
-
-<!-- Run osis bootstrap to build this with guidance -->
-EOF
-fi
-
-# Create version-level docs
-cat > "$BASE/thesis.md" << 'EOF'
-# [Product Name] [Version] — Thesis
-
-<!-- Run osis bootstrap to build this with guidance -->
-EOF
-
-cat > "$BASE/product.md" << 'EOF'
-# [Product Name] [Version] — Product
-
-<!-- Run osis bootstrap to build this with guidance -->
-EOF
-
-cat > "$BASE/strategy.md" << 'EOF'
-# [Product Name] [Version] — Strategy
-
-<!-- Run osis bootstrap to build this with guidance -->
-EOF
-
-# Create changelog
+# Create changelog (always exists, starts empty)
 cat > "$BASE/changelog.md" << 'EOF'
 # Changelog
 EOF
 
+# Create inbox directory (always exists, flat, starts empty)
+mkdir -p "osis/inbox"
+
+# Create core system folder (always exists, empty).
+# core/product.md is NOT created as a stub — it materializes in-session when
+# the builder confirms what the product IS at this version. Same for thesis,
+# strategy, manifesto, brand, design-system: earned, not scaffolded.
+mkdir -p "$BASE/core"
+
+# Wire up CLAUDE.md at project root so future agent sessions pick up product context.
+# Idempotent: skip if the Product Knowledge section already exists.
+CLAUDE_MD="CLAUDE.md"
+if ! grep -q "^## Product Knowledge" "$CLAUDE_MD" 2>/dev/null; then
+  # Add a leading blank line if the file exists and doesn't end with one
+  if [ -f "$CLAUDE_MD" ] && [ -s "$CLAUDE_MD" ]; then
+    printf '\n## Product Knowledge\n\nProduct context lives in the `osis/` directory. Consult these before making product decisions or significant changes:\n\n- `osis/twin.md`: agent-readable operational map of the product\n- `osis/manifesto.md` (if present): product declaration\n- `osis/%s/thesis.md` (if present): current version hypothesis\n- `osis/%s/core/product.md` (if present): current version definition\n- `osis/%s/core/{iteration}/brief.md` (if present): current iteration bet\n\nOther docs (brand, design-system, strategy, charter) appear only when they earn a place in the product. Active version: `%s`. Say "osis" to consult the product expert.\n' "$VERSION" "$VERSION" "$VERSION" >> "$CLAUDE_MD"
+  else
+    printf '# Project\n\n## Product Knowledge\n\nProduct context lives in the `osis/` directory. Consult these before making product decisions or significant changes:\n\n- `osis/twin.md`: agent-readable operational map of the product\n- `osis/manifesto.md` (if present): product declaration\n- `osis/%s/thesis.md` (if present): current version hypothesis\n- `osis/%s/core/product.md` (if present): current version definition\n- `osis/%s/core/{iteration}/brief.md` (if present): current iteration bet\n\nOther docs (brand, design-system, strategy, charter) appear only when they earn a place in the product. Active version: `%s`. Say "osis" to consult the product expert.\n' "$VERSION" "$VERSION" "$VERSION" > "$CLAUDE_MD"
+  fi
+fi
+
 echo ""
-echo "Created osis doc structure:"
+echo "Created minimum Osis root:"
 echo ""
 echo "  osis/"
 echo "    osis.json"
 echo "    README.md"
 echo "    twin.md"
-echo "    manifesto.md"
-echo "    brand.md"
-echo "    design-system.md"
+echo "    inbox/"
 echo "    $VERSION/"
-echo "      thesis.md"
-echo "      product.md"
-echo "      strategy.md"
 echo "      changelog.md"
+echo "      core/"
 echo ""
-echo "Next steps:"
-echo "  1. Run 'osis bootstrap' to build your product docs"
-echo "  2. Add product doc pointers to your CLAUDE.md or agent config"
+echo "Earned docs (manifesto, thesis, product, brief, brand, design-system)"
+echo "materialize in-session when the builder expresses them."
 echo ""
+echo "CLAUDE.md wired with Product Knowledge pointers."
+echo ""
+echo "Next step:"
+echo "  Say 'osis' to start onboarding."
+echo ""
+
+bash "$SCRIPT_DIR/track.sh" skill_onboarded "mode=product" "version=${VERSION}" >/dev/null 2>&1 || true
