@@ -122,7 +122,7 @@ Use `mv` for the rename. Files inside the folder move with it; no per-file opera
 
 ### Deprecate: P
 
-`rm P`. Git history preserves the file if anyone wants to recover it.
+`git rm -f P`. The `-f` is required when `P` has just been rename-staged by a preceding `Folder` or `Rename` op in the same run; otherwise plain `git rm` refuses because the path has changes staged in the index. Git history preserves the file either way.
 
 If product decisions from the deprecated doc should live somewhere in the new shape, a concurrent `Reshape` or `New` entry in the same release's Structural Changes will describe where. The agent reads all operations for the release first, then applies them; for content absorption, extract from the deprecated doc before removing.
 
