@@ -41,6 +41,22 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.5.2: Repo name in the activation header (2026-04-18)
+
+The activation header now renders during fresh onboarding (not just after scaffolding), and its product slot resolves to the repo directory basename when no product name is set yet. The generic "Osis" placeholder no longer appears in projects that have a clear repo name to use.
+
+### Skill Changes
+
+- `render-header.sh` always falls back to the repo directory basename for the product slot when `osis.json`'s `product` or `org` field is null or missing, including the fresh-onboarding case where `osis.json` does not yet exist.
+- Bootstrap greeting now substitutes the same name: *"Welcome to Osis 👋 Let's set up {name}."* Before the fix, the greeting said "your product" generically.
+- `osis.json` info-column line drops the legacy `${PRODUCT:-Osis}` fallback; `PRODUCT` is now guaranteed to be set whenever the header renders.
+- `SKILL.md` Mode Detection for the no-`osis.json` branch explicitly outputs the pre-loaded Activation header block before following the onboarding playbook. The old minimal "👋 Welcome to Osis" welcome line is replaced by the full header.
+- `onboarding.md` Flow section updated to reflect the new welcome shape (Activation header rendered verbatim, followed by the scan announcement).
+
+(No structural changes. Protocol shape stays at 1.0.)
+
+---
+
 ## v1.5.1: Anon-key stability (2026-04-18)
 
 Fixes two stability edges in the pseudonymous identity layer: multi-line JSON formatting of `~/.claude/osis-telemetry.json` or `osis/osis.json` no longer regenerates the anonId, and both files are now written atomically via tempfile + rename so a partial write cannot corrupt the key.

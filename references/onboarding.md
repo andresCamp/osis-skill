@@ -17,7 +17,11 @@ Read this file only when the pre-loaded `Project state` says `no osis.json — t
 ```text
 NO osis.json
   │
-  👋 Welcome to Osis
+  [Pre-loaded Activation header, rendered verbatim]
+  (logo + info column + bootstrap greeting, from
+   render-header.sh preprocessing. The info column
+   shows the repo name, the greeting says
+   "Welcome to Osis 👋 Let's set up {name}.")
   │
   "Let me take a look at what you've got..."
   │
@@ -161,7 +165,7 @@ If import detected:
 
 1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh --org {inferred_org_name}` at the repo root to create the org-level routing layer: `osis.json` (type: "org") and a `twin.md` stub.
 2. Run `(cd {primary_product_path} && bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh v1)` to scaffold the primary product's Osis root at its product-local path.
-3. Write the root `osis/twin.md` with the observed repo-level product/system map diagram. Box-drawing characters, products as peers, owned systems beneath their product, shared packages omitted. See `templates.md` under `twin.md` for the full rules.
+3. Write the root `osis/twin.md` with the observed repo-level product/system map diagram. Box-drawing characters, products as peers, owned systems beneath their product, shared packages omitted. See `references/docs/engine/twin.md` for the full rules.
 4. Write the primary product's `{primary_product_path}/osis/twin.md` with a product-scoped codebase scan.
 5. Import relevant existing artifacts for the primary product into `{primary_product_path}/osis/inbox/`.
 6. Update the root `osis/osis.json` `products` map to reference the primary product's local path. Update the primary product's `osis/osis.json` with inferred product name and regenerated `files` manifest.
@@ -303,4 +307,4 @@ Return the question text only, no leading glyph. The main conversation prepends 
 
 ## On The Repo Map (monorepo `twin.md`)
 
-For monorepos, the subagent writes the root `osis/twin.md` with a repo-level product/system map diagram. The builder never sees this diagram at session start; it lives in the twin and is read on-demand by any agent working in the repo. Diagram geometry rules live in `references/templates.md` under `twin.md`.
+For monorepos, the subagent writes the root `osis/twin.md` with a repo-level product/system map diagram. The builder never sees this diagram at session start; it lives in the twin and is read on-demand by any agent working in the repo. Diagram geometry rules live in `references/docs/engine/twin.md`.

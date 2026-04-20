@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
-  "title": "Onboarding as a conversation",
-  "description": "Osis now onboards by having a real conversation. It loads your repo as context, asks one sharp question, and captures your current product thinking at the right altitude. No empty docs, no reflection quiz."
+  "version": "1.5.2",
+  "title": "Repo name in the activation header",
+  "description": "The full activation header now renders during fresh onboarding, and the product slot uses your repo directory name instead of the generic Osis placeholder."
 }

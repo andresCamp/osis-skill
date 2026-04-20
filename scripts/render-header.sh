@@ -29,11 +29,13 @@ VERSION=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$SK
 # Resolution order for the header's product slot:
 #   1. osis.json `product` field (type: "product")
 #   2. osis.json `org` field (type: "org")
-#   3. Current directory basename (fallback when fields are null)
-# Outside a project, PRODUCT stays empty and the bootstrap welcome fires.
+#   3. Current directory basename (always, when the above are null or missing)
+# OSIS_SCAFFOLDED drives the greeting flavor (bootstrap vs returning).
+OSIS_SCAFFOLDED=false
 PRODUCT=""
 ACTIVE_VERSION=""
 if [ -f "osis/osis.json" ]; then
+  OSIS_SCAFFOLDED=true
   TYPE=$(sed -n 's/.*"type"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
   if [ "$TYPE" = "org" ]; then
     PRODUCT=$(sed -n 's/.*"org"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
@@ -41,9 +43,11 @@ if [ -f "osis/osis.json" ]; then
     PRODUCT=$(sed -n 's/.*"product"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
     ACTIVE_VERSION=$(sed -n 's/.*"activeVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' osis/osis.json | head -1)
   fi
-  if [ -z "$PRODUCT" ]; then
-    PRODUCT=$(basename "$(pwd)")
-  fi
+fi
+# Always fall back to repo directory basename so the header info column
+# never shows a stale "Osis" placeholder when a real project name is available.
+if [ -z "$PRODUCT" ]; then
+  PRODUCT=$(basename "$(pwd)")
 fi
 
 # Current date (full weekday + month + day + year)
@@ -84,8 +88,8 @@ fi
 
 OPENING="${OPENINGS[$((RANDOM % ${#OPENINGS[@]}))]}"
 
-if [ -z "$PRODUCT" ]; then
-  GREETING="Welcome to Osis 👋 Let's set up your product."
+if [ "$OSIS_SCAFFOLDED" = false ]; then
+  GREETING="Welcome to Osis 👋 Let's set up ${PRODUCT}."
 else
   GREETING="${OPENING} Let's keep building ${PRODUCT}."
 fi
@@ -101,7 +105,7 @@ INFO+=("▲ **Osis** v${VERSION} · [osis.dev](https://www.osis.dev)")
 INFO+=("*Build products people love, faster*")
 INFO+=("⠀")
 INFO+=("⠀")
-INFO+=("**${PRODUCT:-Osis}** · ${ACTIVE_VERSION:-}")
+INFO+=("**${PRODUCT}** · ${ACTIVE_VERSION:-}")
 INFO+=("${DATE}")
 
 LOGO_WIDTH=16
