@@ -1,5 +1,5 @@
 {
-  "version": "1.5.2",
-  "title": "Repo name in the activation header",
-  "description": "The full activation header now renders during fresh onboarding, and the product slot uses your repo directory name instead of the generic Osis placeholder."
+  "version": "1.8.0",
+  "title": "Session log + modules",
+  "description": "Every osis-activated conversation is now a logged product-thinking thread captured in osis/sessions.md, and you can wrap activities like customer discovery as modules in osis.json alongside products."
 }

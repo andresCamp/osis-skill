@@ -149,7 +149,8 @@ if [ "$1" = "--org" ]; then
   "org": "${ORG}",
   "anonId": "${ORG_ANON_ID}",
   "createdAt": "$(date -u +%FT%TZ)",
-  "products": {}
+  "products": {},
+  "modules": {}
 }
 EOF
   mv "$TMP_OSIS_JSON" "osis/osis.json"
@@ -220,6 +221,7 @@ if [ ! -f "osis/osis.json" ]; then
   "lastTwinUpdate": null,
   "files": {
     "twin": "osis/twin.md",
+    "sessions": "osis/sessions.md",
     "inbox": [],
     "${VERSION}": {
       "changelog": "osis/${VERSION}/changelog.md",
@@ -227,7 +229,8 @@ if [ ! -f "osis/osis.json" ]; then
         "core": {}
       }
     }
-  }
+  },
+  "modules": {}
 }
 EOF
   mv "$TMP_OSIS_JSON" "osis/osis.json"
@@ -279,6 +282,19 @@ cat > "$BASE/changelog.md" << 'EOF'
 # Changelog
 EOF
 
+# Create sessions log (always exists, starts empty).
+# Append-only record of product-thinking threads. One entry per osis-activated
+# conversation, prepended most-recent-first by the skill's session preflight.
+if [ ! -f "osis/sessions.md" ]; then
+  cat > "osis/sessions.md" << 'EOF'
+# Sessions
+
+Append-only log of product-thinking threads. One entry per osis-activated conversation, most recent first.
+
+---
+EOF
+fi
+
 # Create inbox directory (always exists, flat, starts empty)
 mkdir -p "osis/inbox"
 
@@ -307,6 +323,7 @@ echo "  osis/"
 echo "    osis.json"
 echo "    README.md"
 echo "    twin.md"
+echo "    sessions.md"
 echo "    inbox/"
 echo "    $VERSION/"
 echo "      changelog.md"

@@ -30,6 +30,8 @@ Every maintenance mode obeys these rules. They are the cost of keeping the syste
 
 **Align before writing.** The core Osis principle still applies. In Analyze and Update, surface findings and proposed changes, then confirm before writing. Twin is the one exception: regenerating `twin.md` is the point of the mode, so the write proceeds without per-line alignment once the scan completes. The user can still reject the result.
 
+**Session log.** All three modes are strong-moment sources at both ends. Append a bullet to the current thread in `osis/sessions.md` on mode entry (name the mode and target), and again on scan completion for Twin and Analyze, or write completion for Update (name the outcome: twin refreshed, findings logged, doc propagated). If topic or areas are still `pending`, infer and write them alongside the first append. Skip silently if `bash {SKILL_PATH}/scripts/session-id.sh` returns non-zero or `sessions.md` is missing.
+
 ## Twin
 
 Refreshes the digital twin. The twin is an agent-readable operational map: descriptive, not prescriptive. It reflects the system; it does not define product decisions.
@@ -50,7 +52,7 @@ The user asks for a twin update, says "rescan the twin," notes that the twin is 
 
 ### What the twin contains
 
-- **Master diagram.** The product topology in one visual. Follow the diagram geometry rules in `references/templates.md` under `twin.md`. The twin's diagram is the product's shape at the code level, drawn from the product's perspective, not a raw repo tree.
+- **Master diagram.** The product topology in one visual. Follow the diagram geometry rules in `references/docs/engine/twin.md`. The twin's diagram is the product's shape at the code level, drawn from the product's perspective, not a raw repo tree.
 - **Systems.** For each significant system: name, capabilities, maturity (shipping / in progress / stub).
 - **Canonical entities.** The domain objects that matter, and their relationships.
 - **Interfaces.** How systems communicate (HTTP routes, events, shared DB, direct imports).
@@ -172,3 +174,9 @@ Examples:
 ### The propagation rule
 
 Update exists because implementation reveals truth that specification could not anticipate. When that happens, push the truth up, not just across. A brief that learns something the thesis assumed away must change the thesis, or the brief is lying to itself.
+
+---
+
+## Sessions
+
+- 2026-04-23 — Added shared-contract session-log rule; Twin, Analyze, Update as strong-moment sources on entry and completion · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

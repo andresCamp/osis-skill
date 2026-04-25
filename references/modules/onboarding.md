@@ -204,6 +204,8 @@ Their purpose is to sharpen questions during the session, not to seed docs.
 
 After the opener, onboarding continues as the first clarity session. The CTA does not end onboarding; it starts it.
 
+The skill's session preflight is suppressed for the duration of onboarding. `sessions.md` is scaffolded as part of `onboard.sh`, and the first real entry is prepended by normal preflight on the **next** osis activation, not during this one. Strong-moment appends inside onboarding are also deferred: the onboarding subagent owns the scaffolding, and the close ritual below is the natural summary for this session's thread. If the first osis activation after onboarding finds no entry for the current session, preflight creates a fresh entry as usual.
+
 ### Behavior
 
 - **Listen.** Let the builder dump current thinking. Messy is fine. Unfinished is fine.
@@ -238,6 +240,7 @@ The goal is placement, not polish. When a single thread begins to dominate the s
 - `osis.json`
 - `README.md`
 - `twin.md` (stub for bootstrap, observed map for import)
+- `sessions.md` (empty header; the skill's session preflight owns entries from the first substantive turn onward)
 - `inbox/` with imported-signal files for each significant artifact
 - `{version}/` folder
 - `{version}/changelog.md`
@@ -308,3 +311,9 @@ Return the question text only, no leading glyph. The main conversation prepends 
 ## On The Repo Map (monorepo `twin.md`)
 
 For monorepos, the subagent writes the root `osis/twin.md` with a repo-level product/system map diagram. The builder never sees this diagram at session start; it lives in the twin and is read on-demand by any agent working in the repo. Diagram geometry rules live in `references/docs/engine/twin.md`.
+
+---
+
+## Sessions
+
+- 2026-04-23 — Added sessions.md to always-scaffolded set, documented preflight suppression during onboarding · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

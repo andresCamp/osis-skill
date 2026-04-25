@@ -124,7 +124,9 @@ skills/osis/
     track.sh           ← pseudonymous telemetry
   references/
     protocol.md        ← full protocol specification
-    templates.md       ← all doc templates
+    docs/              ← per-doc reasoning principles + templates
+      funnel/          ← charter, manifesto, brand, design-system, thesis, strategy, product, brief
+      engine/          ← impl, signals, changelog, twin
     onboarding.md      ← first-session playbook
     maintenance.md     ← update, analyze, twin modes
     migration.md       ← protocol-shape migration flow

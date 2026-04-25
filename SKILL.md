@@ -139,13 +139,13 @@ Every system is the same shape: a folder with `product.md` and iteration folders
 - Brief = what changes and why (product decisions). Implementation = how it's built (tech decisions).
 - Implementation is the handoff boundary. Osis owns through tech decisions. Plan mode owns syntax and execution.
 
-**Frameworks:** Proven product frameworks are distilled into per-section principles in `references/docs/funnel/` and `references/docs/engine/`. The agent reasons from principles silently and never narrates them. See [references/protocol.md](references/protocol.md) for the philosophy.
+**Frameworks:** Proven product frameworks are distilled into per-section principles in the drafting docs under `references/docs/funnel/` and `references/docs/engine/`. `references/docs/engine/twin.md` is the deliberate exception: template-only, because Twin mode regenerates from code instead of drafting section by section. The agent reasons from these silently and never narrates them. See [references/protocol.md](references/protocol.md) for the philosophy.
 
 For the full protocol details: read [references/protocol.md](references/protocol.md).
 
-For doc templates and per-section principles: read the relevant file in `references/docs/funnel/` (charter, manifesto, brand, design-system, thesis, strategy, product, brief) or `references/docs/engine/` (impl, signals, changelog, twin).
+For doc templates and per-section principles: read the relevant file in `references/docs/funnel/` (charter, manifesto, brand, design-system, thesis, strategy, product, brief) or `references/docs/engine/` (impl, signals, changelog). For Twin mode, read `references/docs/engine/twin.md` as the regeneration template and geometry spec.
 
-For fresh repo onboarding only: use the pre-loaded `Onboarding playbook` from Conversation Initialization when `osis.json` is missing. The source file lives at [references/onboarding.md](references/onboarding.md).
+For fresh repo onboarding only: use the pre-loaded `Onboarding playbook` from Conversation Initialization when `osis.json` is missing. The source file lives at [references/modules/onboarding.md](references/modules/onboarding.md).
 
 ## Conversation Initialization
 
@@ -162,7 +162,7 @@ For fresh repo onboarding only: use the pre-loaded `Onboarding playbook` from Co
 - **Project state:** !`cat osis/osis.json 2>/dev/null || echo 'no osis.json — this is a fresh onboarding'`
 - **Onboarding playbook** (pre-loaded only for fresh onboardings; otherwise intentionally blank):
 
-!`if [ -f osis/osis.json ]; then printf ''; else cat ${CLAUDE_SKILL_DIR}/references/onboarding.md 2>/dev/null || echo 'onboarding playbook unavailable'; fi`
+!`if [ -f osis/osis.json ]; then printf ''; else cat ${CLAUDE_SKILL_DIR}/references/modules/onboarding.md 2>/dev/null || echo 'onboarding playbook unavailable'; fi`
 
 When the skill activates, use the pre-loaded values above and do **exactly** these steps in order. Nothing else — no git commands, no exploratory project scans, no extra file reads. The skill's promise is a silent activation followed by a greeting; freelancing here breaks that promise and surfaces tool calls the user doesn't need to see.
 
@@ -179,6 +179,8 @@ When the skill activates, use the pre-loaded values above and do **exactly** the
 2. Parse the pre-loaded `Project state` JSON to determine your mode (see [Mode Detection](#mode-detection)). If the project state says `no osis.json — this is a fresh onboarding`, jump straight to the Onboarding flow.
 
 3. Greet the user per Mode Detection, then wait for their signal.
+
+4. **Session preflight** (see [Session Preflight](#session-preflight)). Do NOT run preflight during silent activation or the greeting. The preflight runs on the **first substantive user turn** after the greeting, as a prerequisite before you respond. A substantive turn is anything other than a one-word ack, a yes/no to the release banner, or the silence before the user has said anything real. Preflight happens once per session; subsequent turns skip it.
 
 **Do not** run `git status`, `git log`, `git diff`, or any other git command during initialization or routine consults. Git is only allowed inside Twin and Analyze modes, where the branch guard runs explicitly. The continuity layer the agent needs already lives in the pre-loaded `Project state` above (`activeVersion`, `lastTwinUpdate`) and in the per-doc session footers — that's the source of truth for "what's in flight," not git state.
 
@@ -224,13 +226,35 @@ The version check runs as SKILL.md preprocessing — the `Local version` and `Re
 
    - **Ambiguous or off-topic reply** (user started talking about something else, ignored the banner, etc.) → treat it as "no" silently and engage with whatever the user actually said. Do NOT add `▲ What's on your mind?` here — the user has already told you what's on their mind by changing the subject.
 
+## Session Preflight
+
+Every osis-activated conversation is a **product-thinking thread**. `osis/sessions.md` is the thread log. Preflight opens the current thread (or confirms one is already open) so every strong moment in the session has a home.
+
+Preflight runs exactly once per session, on the **first substantive user turn after the greeting**. Never during the silent activation sequence, never during the greeting render, never in response to a release-banner yes/no. Skip preflight entirely during onboarding when `osis.json` does not yet exist; the onboarding subagent owns sessions.md creation alongside the rest of the scaffold.
+
+Logic:
+
+1. Resolve the current session ID with `bash {SKILL_PATH}/scripts/session-id.sh`. If the script exits non-zero, skip preflight silently for this session and never retry.
+2. Read `osis/sessions.md` (Edit, not Bash). If the file does not exist, skip preflight silently; session-log creation is scoped to onboarding.
+3. Scan the file for a heading matching the current session ID. If one exists, preflight is complete; do not rewrite.
+4. Prepend a new entry at the top of the file (above the most recent existing entry, below the file header and its intro line). The new entry carries:
+   - Heading `## {YYYY-MM-DD} · claude -r {current-session-id}` using the system date.
+   - `**Topic:** pending`
+   - `**Areas:** pending`
+   - No bullets yet.
+   - Divider `---` below the new entry, separating it from the next.
+
+Preflight never modifies entries from other sessions. Sibling-session entries are independent threads, not predecessors. Preflight writes happen silently. Never narrate the action. The user should experience preflight as invisible bookkeeping.
+
+Topic and areas stay `pending` until a strong-moment append fires (see [Modes](#modes)). When the first strong moment fires in a thread whose topic or areas are still `pending`, infer both from current context, edit them in place, then append the bullet. If the session ends without any strong moment, the entry simply stays at `pending`.
+
 ## Modes
 
 ### Mode Detection
 
 On ANY interaction, check `osis.json` silently:
 - **If `osis.json` does not exist** → output the pre-loaded **Activation header** block verbatim (the `render-header.sh` preprocessing already picks a bootstrap-flavored greeting and resolves the info column to the repo directory basename), then follow the onboarding playbook. Do not tell the user about internal state detection.
-- **If `osis.json` exists with `type: "org"`** → read the products map. Ask which product the user is working on today. Route to that product's `osis/` and proceed as normal.
+- **If `osis.json` exists with `type: "org"`** → read the `products` and `modules` maps. Ask what the user is working on today, naming products and modules from the manifest. For products, route to that product's `osis/` tree. For modules, route to `osis/{module-slug}/` and read the module's `README.md` for its entry behavior before engaging. Products are full product trees with their own funnel docs; modules are activity wrappers that cut across products, with their own entry and phase playbooks.
 - **If `osis.json` exists with `type: "product"` (or no type field)** → read it silently for context, then output the **Activation header** block from your pre-loaded context **verbatim** as the first lines of your response. The block already contains everything: the divider, the 6-line logo + info column, a blank line, and the time-aware greeting (randomly picked per activation from a curated variant list — the script handles the pick, you just output it). Preserve ALL whitespace and markdown formatting exactly as pre-loaded. Example of what you'll see in the pre-loaded activation header: *"Good afternoon 👋 Let's keep building Osis."* or *"Welcome back 👋 Let's keep building Osis."* or *"Nice to see you 👋 Let's keep building Osis."* — same three-sentence structure, different opening phrase each session.
 
   After the activation block, add either:
@@ -241,7 +265,7 @@ On ANY interaction, check `osis.json` silently:
 
   Do **not** enumerate `osis.json` fields like `activeVersion` or the files manifest in prose — the activation header already shows the relevant project context, and restating it is internal chatter, not signal. Loaded context informs your *answers*, never your *greeting*.
 
-**Product context loading:** `osis.json` contains a `files` manifest — a tree of all product documentation files. When the user references a version, feature, or product area, use the manifest to identify and read the relevant docs *before* engaging. This is the product context layer — it supplements the agent's existing codebase understanding, it does not replace it. Never ask the user to explain something that's already in the docs. Loading is silent: never announce which files you've read or what state you found.
+**Product context loading:** `osis.json` contains a `files` manifest (the tree of all product documentation files) and a `modules` map (activity wrappers scoped to this product). When the user references a version, feature, product area, or module (by name or trigger phrase), use those to identify and read the relevant docs *before* engaging. For modules, read the module's `README.md` to pick up its entry behavior and phase playbooks. This is the product context layer; it supplements the agent's existing codebase understanding, it does not replace it. Never ask the user to explain something that's already in the docs. Loading is silent: never announce which files you've read or what state you found.
 
 ### Onboarding
 
@@ -251,13 +275,13 @@ This logic is progressive-disclosure by design. Do not load the onboarding playb
 
 If the pre-loaded `Project state` says `no osis.json — this is a fresh onboarding`:
 
-1. Use the pre-loaded `Onboarding playbook` from Conversation Initialization. Do not read [references/onboarding.md](references/onboarding.md) via tools during the conversation; it is already in context when needed.
+1. Use the pre-loaded `Onboarding playbook` from Conversation Initialization. Do not read [references/modules/onboarding.md](references/modules/onboarding.md) via tools during the conversation; it is already in context when needed.
 2. Follow the playbook from the normal welcome. It owns the foreground subagent contract, bootstrap-versus-import detection, monorepo handling (which scaffolds silently with a best-guess primary product and opens with the import question), scaffolding rules, and exact render order.
 3. Complete onboarding before continuing the conversation.
 
 #### Post-onboarding: guiding the conversation
 
-After the opener, onboarding continues as the first clarity session. The playbook lives in [references/onboarding.md](references/onboarding.md) under "First Session Contract": real-time altitude routing, follow-up moves (altitude check, dot-connect, gap fill, tension force, altitude capture), the anti-rabbit-hole rule, what to materialize in-session versus defer, and the close ritual.
+After the opener, onboarding continues as the first clarity session. The playbook lives in [references/modules/onboarding.md](references/modules/onboarding.md) under "First Session Contract": real-time altitude routing, follow-up moves (altitude check, dot-connect, gap fill, tension force, altitude capture), the anti-rabbit-hole rule, what to materialize in-session versus defer, and the close ritual.
 
 Durable rules that apply beyond onboarding:
 
@@ -272,7 +296,9 @@ Durable rules that apply beyond onboarding:
 
 Processes the inbox. Turns unsorted drops into routed decisions (discard, distill, or move to iteration).
 
-This logic is progressive-disclosure by design. When the user triggers Triage (says "triage," asks to process the inbox, or equivalent), read [references/triage.md](references/triage.md) and follow the playbook there. Do not load it during routine consults or maintenance.
+This logic is progressive-disclosure by design. When the user triggers Triage (says "triage," asks to process the inbox, or equivalent), read [references/modules/triage.md](references/modules/triage.md) and follow the playbook there. Do not load it during routine consults or maintenance.
+
+**Session log:** Triage is a strong-moment source at both ends. Append a bullet to the current session thread in `osis/sessions.md` when Triage mode is entered, and again on the completion summary. If topic or areas are still `pending`, infer and write them alongside the append. Writes happen silently; do not narrate.
 
 ### Consult
 
@@ -294,7 +320,7 @@ After writing, store the raw signal to the relevant `{iteration}/signals/` as a 
 type: observation | feedback | research | transcript | metric
 date: 2026-03-15
 source: user interview | voice memo | slack | manual
-summary: One-line key insight.
+summary: One-line summary of what was observed.
 ---
 [Raw content. Do not interpret here. Raw only.]
 ```
@@ -302,6 +328,8 @@ summary: One-line key insight.
 **When a signal warrants a new iteration:** If the signal represents a new product direction (not just a tweak to an existing iteration), create a new iteration folder with a `brief.md` that captures the signal, insight, and bet. The brief is the commander's orders: what changes, what doesn't, and how the build phases out.
 
 **When ambiguity is hurting output quality:** force the missing constraint into existence through conversation. This is how the funnel thickens over time.
+
+**Session log:** Consult is a strong-moment source after each doc write and after each aligned decision captured inline (the kind that doesn't touch a doc but changes how the product is being thought about). Append a bullet to the current session thread in `osis/sessions.md` at those moments. The bullet is one concrete line naming what landed; if topic or areas are still `pending`, infer and write them alongside the append. Also respond to explicit capture cues ("log this", "note this") by appending a bullet verbatim from the user or lightly paraphrased. Writes happen silently.
 
 ### Update, Analyze, Twin (Maintenance)
 
@@ -311,7 +339,9 @@ Three post-creation reconciliation modes. They share one contract (branch guard,
 - **Analyze** — scan an artifact, compare against the relevant doc, flag findings.
 - **Twin** — rescan the codebase, regenerate `twin.md`.
 
-This logic is progressive-disclosure by design. When the user triggers any of these modes, read [references/maintenance.md](references/maintenance.md) and follow the playbook there. Do not load it during routine consults or onboarding.
+This logic is progressive-disclosure by design. When the user triggers any of these modes, read [references/modules/maintenance.md](references/modules/maintenance.md) and follow the playbook there. Do not load it during routine consults or onboarding.
+
+**Session log:** All three modes are strong-moment sources at both ends. Append a bullet to the current session thread in `osis/sessions.md` on mode entry, and again on scan completion (or write completion for Update). Name the artifact touched, not the mechanics. If topic or areas are still `pending`, infer and write them alongside the append. Writes happen silently.
 
 ## Doc Conventions
 
@@ -339,12 +369,20 @@ Every osis doc carries a Sessions footer that tracks which agent sessions built 
 
 The summary is one line, written from the perspective of "what changed in this session" — concrete, not philosophical. Examples: *"Added the proximity principle paragraph"*, *"Refined section II based on feedback"*, *"Initial draft from onboarding conversation"*.
 
-This convention applies to every funnel and engine doc except `osis.json` and `README.md` (which are not conversation artifacts).
+This convention applies to every funnel and engine doc except `osis.json`, `README.md`, and `sessions.md`. The first two are not conversation artifacts. `sessions.md` already embeds session IDs in every entry heading, so a separate footer would double the record.
+
+### Session Log
+
+`osis/sessions.md` is the session thread log. It sits at a different altitude from the per-doc Session Footer, and both are kept. The footer is per-doc provenance: which sessions touched this specific doc. The log is per-session thread: what this conversation was about, which product areas it touched, whether it closed, and the strong moments inside it.
+
+A session can land in many doc footers and exactly one session-log entry. A session-log entry can exist without any doc writes at all (open thread, no convergence); a doc footer cannot. Together, the two give both views: from the doc outward (who thought about me) and from the session outward (what did I think about).
+
+Preflight is described in full under [Session Preflight](#session-preflight). Strong-moment appends are described per-mode in [Modes](#modes). Entry shape (heading, Topic, Areas, State, bullets, divider, ordering) is described in the protocol.
 
 ## Behavioral Rules
 
 - **Ask before you write.** Always. The conversation is where the value is.
-- **Reason from principles silently.** Each typed doc has per-section principles in `references/docs/funnel/` and `references/docs/engine/`. Load the relevant file when drafting, reason from the principles, never narrate them. Principles are tools for this builder and this project, not a checklist. Apply the Pareto lens: if the draft has hit the 80/20 point where further polish is diminishing returns, move on. If not, surface the one thing missing, once, then defer. The builder chooses. Options are valid only when they reflect a real, grounded choice (distinct orientations, live tradeoffs with reasoning). Never A/B/C-pick with thin paraphrased variants.
+- **Reason from principles silently.** Drafting docs carry per-section principles in `references/docs/funnel/` and the drafting files under `references/docs/engine/`. Twin is the exception: `references/docs/engine/twin.md` is template-only because Twin mode regenerates from code. Load the relevant file, reason from it, never narrate it. Keep observation and inference distinct, do not generalize from a single anecdote as proof, do not invent motives or certainty, prefer mechanism over villain, and do not explain the drafting rubric unless the user explicitly asks. Principles are tools for this builder and this project, not a checklist. Apply the Pareto lens: if the draft has hit the 80/20 point where further polish is diminishing returns, move on. If not, surface the one thing missing, once, then defer. The builder chooses. Options are valid only when they reflect a real, grounded choice (distinct orientations, live tradeoffs with reasoning). Never A/B/C-pick with thin paraphrased variants.
 - **Challenge vague thinking.** "We need better onboarding" is not a signal. "Users drop off after step 2 because X" is. Help the user get specific.
 - **Think in systems.** Every change ripples. Think upstream and downstream.
 - **Be honest.** If an idea is bad, say so. If specs are drifting, say so. You're a cofounder, not a yes-man.
@@ -358,7 +396,7 @@ This convention applies to every funnel and engine doc except `osis.json` and `R
 
 ## File Structure
 
-Canonical locations, not a mandatory checklist. `onboard.sh` scaffolds only the minimum root (`osis.json`, `README.md`, `twin.md`, `inbox/`, `{version}/changelog.md`, `{version}/core/`). Everything else materializes in-session when the builder's thinking earns its altitude. Missing beats empty.
+Canonical locations, not a mandatory checklist. `onboard.sh` scaffolds only the minimum root (`osis.json`, `README.md`, `twin.md`, `sessions.md`, `inbox/`, `{version}/changelog.md`, `{version}/core/`). Everything else materializes in-session when the builder's thinking earns its altitude. Missing beats empty.
 
 ```
 osis/
@@ -369,6 +407,7 @@ osis/
   brand.md                            ← product (expression, earned)
   design-system.md                    ← product (interface rules, earned)
   twin.md                             ← product (engine: operational map, always)
+  sessions.md                         ← root (engine: product-thinking thread log, always)
   inbox/                              ← root (engine: pre-triage signals, always)
     {date}--{slug}.md
   {version}/                          ← e.g. v0/, v1/
@@ -402,6 +441,7 @@ osis/
   "lastTwinUpdate": null,
   "files": {
     "twin": "osis/twin.md",
+    "sessions": "osis/sessions.md",
     "inbox": [],
     "v1": {
       "changelog": "osis/v1/changelog.md",
@@ -409,11 +449,12 @@ osis/
         "core": {}
       }
     }
-  }
+  },
+  "modules": {}
 }
 ```
 
-The `files` key is a manifest of docs that actually exist on disk. It starts with only the always-scaffolded docs (twin, inbox, version changelog, core/). The manifest regenerates as earned docs materialize in-session: `manifesto`, `thesis`, `core.product`, `brand`, `design-system`, iteration `brief`, etc. Every mode that creates or deletes files must keep this manifest in sync.
+The `files` key is a manifest of docs that actually exist on disk. It starts with only the always-scaffolded docs (twin, sessions, inbox, version changelog, core/). The manifest regenerates as earned docs materialize in-session: `manifesto`, `thesis`, `core.product`, `brand`, `design-system`, iteration `brief`, etc. Every mode that creates or deletes files must keep this manifest in sync.
 
 **Org osis.json format (monorepo):**
 ```json
@@ -423,9 +464,12 @@ The `files` key is a manifest of docs that actually exist on disk. It starts wit
   "org": null,
   "anonId": "uuid-v4-string",
   "createdAt": "2026-04-15T00:00:00Z",
-  "products": {}
+  "products": {},
+  "modules": {}
 }
 ```
+
+The `modules` map records activity wrappers for product work. Each key is a module slug; each value is the path to the module folder. Scope depends on where the declaration lives: modules declared in a root (org) `osis.json` cut across products and live at `osis/{module-slug}/`; modules declared in a product's `osis.json` are scoped to that product and live inside the product's `osis/` tree. Modules carry their own entry behavior and phase playbooks; the skill reads the module's `README.md` when the user routes into it.
 
 `anonId` and `createdAt` are minted by `onboard.sh` for pseudonymous telemetry — preserve them verbatim on any rewrite.
 
@@ -448,3 +492,9 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 - Routine git/deploy operations
 - Adding standard infrastructure (auth, payments, email) — the cron handles this
 - Questions about libraries or APIs unrelated to the product
+
+---
+
+## Sessions
+
+- 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

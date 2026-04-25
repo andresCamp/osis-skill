@@ -8,7 +8,7 @@ The source of truth for what to do is `CHANGELOG.md` at the skill root. Each rel
 
 ## Skill Path
 
-`${CLAUDE_SKILL_DIR}` refers to the skill's install directory (typically `~/.claude/skills/osis`). After `update-skill.sh` succeeds, this directory contains the newly installed files, including the updated `CHANGELOG.md`, `references/protocol.md`, and `references/templates.md`.
+`${CLAUDE_SKILL_DIR}` refers to the skill's install directory (typically `~/.claude/skills/osis`). After `update-skill.sh` succeeds, this directory contains the newly installed files, including the updated `CHANGELOG.md`, `references/protocol.md`, and the per-doc files under `references/docs/`.
 
 ## Flow
 
@@ -88,7 +88,7 @@ If the containing folder for `B` doesn't exist yet, create it first.
 The doc at path `P` keeps its identity, but its template has changed. Rewrite its content into the new shape:
 
 1. Read the current file at `P`.
-2. Read the current template for this doc type from `${CLAUDE_SKILL_DIR}/references/templates.md`.
+2. Read the current template for this doc type from `${CLAUDE_SKILL_DIR}/references/docs/funnel/{doc}.md` or `${CLAUDE_SKILL_DIR}/references/docs/engine/{doc}.md`.
 3. Extract the product decisions from the old content.
 4. Write the new doc at `P` using the new template shape, placing decisions into the best-fit sections.
 5. Any content that doesn't clearly map to a new section goes under a footer:
@@ -104,7 +104,7 @@ Never delete information. Osis wrote this content through product conversations;
 
 The doc is new to the protocol at this version. Create it:
 
-1. Scaffold an empty shell at `P` using the current template from `templates.md`.
+1. Scaffold an empty shell at `P` using the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`.
 2. Scan the rest of `osis/` for product decisions that could seed this doc. For example, `{version}/strategy.md` might seed from wedge or positioning content in an existing product spec. `brand.md` might seed from voice or positioning notes elsewhere.
 3. If obvious source content exists, draft the new doc with it. If not, leave the shell empty.
 4. Either way, the file exists in the new shape. The user refines during Consult conversations.

@@ -1,4 +1,4 @@
-# Osis Protocol v1.0.0
+# Osis Protocol v2.0.0
 
 > Working draft. The shape, principles, and decisions for the next protocol.
 
@@ -6,9 +6,18 @@
 
 ## What Osis Is
 
-Osis is not a documentation tool. It is a **product clarity system** and a **typed reasoning system for product development** — a system for maintaining clean, evolving product context across abstraction layers.
+Osis is not a documentation tool. It is a **product clarity system** and a **typed reasoning system for product development**, a system for maintaining clean, evolving product context across abstraction layers.
 
-The docs are not "docs" in the traditional sense. They are definitions of a slice of the product at a specific level of abstraction. Each document has a clear identity, meaning, and role in the system — like types in programming. A `thesis.md` is always a hypothesis. A `brief.md` is always an experiment. A `product.md` is always a definition. Agents can rely on this.
+The docs are not "docs" in the traditional sense. They are definitions of a slice of the product at a specific level of abstraction. Each document has a clear identity, meaning, and role in the system, like types in programming. A `thesis.md` is always a hypothesis. A `brief.md` is always an experiment. A `product.md` is always a definition. Agents can rely on this.
+
+Osis tracks product state at four cuts of abstraction, each with its own doc shape:
+
+1. **Twin**: what the product IS. Code reality compressed into an operational map.
+2. **Funnel docs**: what the product is BECOMING. The clarity funnel from manifesto to phase.
+3. **Engine docs (crystallized)**: why the product moved. Changelog entries, triaged inbox, iteration signals. Thought that has settled into record.
+4. **Engine docs (in motion)**: the thinking itself. The session log captures every osis-activated conversation as a product-thinking thread, whether or not it lands in the other three cuts.
+
+Docs crystallize thought. Sessions capture thought in motion. The unit of the session log is the **thread**, not the session: each activation opens a product-thinking thread that either converges and closes, or stays open, bookmarked for a future session.
 
 Each document is a projection of the same system at a different level of abstraction.
 
@@ -32,7 +41,7 @@ Osis is also the version control layer for product thinking. Product beliefs, co
 
 4. **Capture now, refine later.** Osis should capture current thinking as it exists today, even if rough, and place it at the right altitude from day one. Refinement comes in later clarity sessions.
 
-5. **Protocol spine, adaptive shape.** The set of doc types is fixed. The instantiated shape in a repo is adaptive. Not every doc needs to exist on day one, but when a doc exists it keeps its semantic spine.
+5. **Protocol spine, adaptive shape.** The set of doc types is fixed; their semantic spine holds whenever they exist. Their altitude is adaptive: a constraint lives at the altitude where its scope is still shared, and branches downward where sharing ends. A manifesto shared across every surface of a product lives at product root; a design-system that differs between surfaces lives at each surface. Not every doc needs to exist on day one, but when a doc exists it keeps its semantic spine and sits at the altitude its sharing demands.
 
 6. **Constraints are leverage.** The docs are the constraint force agents read when doing product thinking or writing code. If ambiguity is degrading output quality, Osis should force the missing constraint into existence through conversation.
 
@@ -72,6 +81,40 @@ Osis is also the version control layer for product thinking. Product beliefs, co
 | **System** | Strategic/Tactical | A distinct, encapsulated product surface with its own inputs, outputs, and behavior |
 | **Iteration** | Tactical | A falsifiable product bet informed by signal |
 | **Phase** | Executable | Tech decisions in logical, testable chunks → plan mode |
+
+---
+
+## Funnel as a Branching Tree
+
+The altitude ladder is the conceptual spine. The instantiated funnel in any repo is a tree. Each node carries the levels whose scope is shared across all branches below it; branching happens at the altitude where shared scope ends.
+
+```
+                              [product]
+                  ──────────────────────────────
+                  manifesto.md
+                  charter.md
+                  (brand, design-system here if shared across surfaces)
+                                  │
+              ┌───────────────────┼───────────────────┐
+              │                   │                   │
+            {surface}           {surface}            {surface}
+           ──────────          ──────────           ──────────
+           v{version}/         v{version}/          v{version}/
+             thesis.md           thesis.md            thesis.md
+             strategy.md         strategy.md          strategy.md
+             changelog.md        changelog.md         changelog.md
+             product.md          product.md           product.md
+             iteration-{n}--{slug}/   iteration-{n}--{slug}/    iteration-{n}--{slug}/
+               brief.md            brief.md             brief.md
+               signals/            signals/             signals/
+               {phase-name}.impl.md {phase-name}.impl.md {phase-name}.impl.md
+```
+
+For a single-surface product there is no branch; the tree collapses to one line from manifesto down to phase.
+
+For a monorepo of unrelated products, branching happens at the charter altitude. Each product is a subtree carrying its own manifesto and its own funnel below it.
+
+The right shape is not chosen in advance. It is discovered by asking where each constraint actually stops being shared. The answer determines the altitude.
 
 ---
 
@@ -140,12 +183,30 @@ Each doc is a typed node in a reasoning graph. Edges are the structural relation
 
 | Doc | Level | Purpose |
 |---|---|---|
-| `twin.md` | Product | Agent-readable operational map. Descriptive, not prescriptive — reflects the system, does not define product decisions |
+| `twin.md` | Product | Agent-readable operational map. Descriptive, not prescriptive, reflects the system, does not define product decisions |
+| `sessions.md` | Root | Session log. One entry per osis-activated conversation, tracked as a product-thinking thread (open or closed). Captures thinking in motion, not just what crystallized into docs |
 | `changelog.md` | Version | Chronological record of decisions and spec changes |
 | `inbox/{signal}.md` | Root | Pre-triage signal. Imported artifacts, pasted notes, and unresolved observations land here before routing |
 | `{signal}.md` | Iteration (`signals/`) | Raw intel that informed the brief |
 | `osis.json` | Root | Machine state, routing, file graph |
 | `README.md` | Root | Static protocol explainer |
+
+### Sessions Log
+
+`sessions.md` is a root-level engine doc that sits alongside `twin.md`, `inbox/`, and `osis.json`. It is append-only, most-recent-first, and owns a different altitude from the per-doc Sessions footer: the footer records per-doc provenance (which session touched which doc), while `sessions.md` records the thread itself (what the conversation was about, whether it closed, which areas it touched).
+
+Entry shape:
+
+- Heading: `## {YYYY-MM-DD} · claude -r {session-id}`
+- `**Topic:**` one-line subject, or `pending` until it can be inferred
+- `**Areas:**` comma-separated tags (docs touched, product areas discussed), or `pending`
+- Append-only bullets for strong moments within the thread
+- Divider `---` between entries
+- Most recent entry at the top
+
+Preflight behavior: on the first substantive user turn after the greeting (never during silent activation), the skill resolves the current session ID, checks `sessions.md` for a matching entry, and prepends a stub with `topic/areas: pending` if none exists. The skill never modifies other entries; sibling-session entries are independent threads.
+
+Strong-moment triggers append bullets to the current thread's entry: after a doc write or aligned decision in Consult, on mode entry and completion summary in Triage, on mode entry and scan completion in Twin, Analyze, and Update, and when the user says "log this" or "note this." When a strong moment fires and topic or areas are still `pending`, the skill infers and writes them from current context.
 
 Preexisting docs, marketing copy, decks, and notes should be loaded into `osis/inbox/` as signal when they are relevant to onboarding or a clarity session. They inform the conversation, but they do not become canon automatically.
 
@@ -192,7 +253,7 @@ The same `core/product.md` doc evolves naturally as systems get added: it scales
 
 ## Folder Structure
 
-Canonical locations, not a mandatory checklist. Many projects start sparse and materialize more docs over time.
+Canonical shape for the common case. Actual layouts follow the branching tree above: any doc may live at a higher or lower altitude depending on where its scope is shared. Many projects start sparse and materialize more docs over time.
 
 ```
 osis/
@@ -203,22 +264,23 @@ osis/
   brand.md                            ← product
   design-system.md                    ← product
   twin.md                             ← product (engine)
+  sessions.md                         ← root (engine: product-thinking thread log, one entry per session)
   inbox/                              ← root (engine: imported and pre-triage signals)
     {date}--{slug}.md
-  {version}/                          ← e.g. v0/, v1/
+  v{version}/                         ← e.g. v0/, v1/
     thesis.md
     strategy.md
     changelog.md                      ← single source of truth for all iterations
     core/                             ← always exists; the top-level system
       product.md
-      {iteration-slug}/               ← e.g. iteration-1--launch/
+      iteration-{n}--{slug}/               ← e.g. iteration-1--launch/
         brief.md
         signals/
           {date}--{slug}.md
         {phase-name}.impl.md          ← e.g. core-ux.impl.md
     {system}/                         ← only when complexity warrants
       product.md
-      {iteration-slug}/
+      iteration-{n}--{slug}/
         brief.md
         signals/
         {phase-name}.impl.md
@@ -245,6 +307,7 @@ Machine state for the osis folder. Consumed by the skill at load time (mode dete
   "color": "blue",
   "files": {
     "twin": "osis/twin.md",
+    "sessions": "osis/sessions.md",
     "inbox": [],
     "manifesto": "osis/manifesto.md",
     "brand": "osis/brand.md",
@@ -329,45 +392,21 @@ No separate roadmap doc. The structure itself is the roadmap:
 
 ## Frameworks
 
-### Philosophy
+Osis applies first principles from proven product frameworks at the right altitude, automatically. Frameworks are a hidden reasoning layer, not the product itself.
 
-Osis applies a small set of proven product frameworks to the right decisions, automatically.
-
-Frameworks are a hidden reasoning layer, not the product itself. They are mini skills with triggers — selected automatically, plugged into the right doc at the right time. The user never thinks "I should use JTBD here."
+Each typed doc has a per-doc reference file at `references/docs/funnel/{doc}.md` or `references/docs/engine/{doc}.md`. The drafting docs carry per-section principles distilled from proven thinkers. `references/docs/engine/twin.md` is the deliberate exception: template-only, because Twin mode regenerates from code instead of drafting section by section. The agent loads the relevant doc silently when helping a builder draft, reasons from it, and never narrates it. The builder never thinks "I should use JTBD here."
 
 **Constraints:**
-- Each doc uses at most 1–2 frameworks. Otherwise docs become bloated.
-- Frameworks should never change the type of a doc — only enhance clarity within it.
-
-### Core Framework Set
-
-| Framework | Trigger | Output | Allowed Docs |
-|---|---|---|---|
-| **JTBD** | Product is feature-led, unclear on user job | Job statement, desired outcome, alternatives, constraints | Thesis, Product, Brief |
-| **PR/FAQ** | Value proposition or future state is fuzzy | Customer-facing value articulation, objections, promise | Thesis, Product |
-| **North Star / KPI** | Strategy or iteration needs success definition | Core metric, supporting metrics, rationale | Strategy, Brief |
-| **Loop** | Product needs recurrence or compounding engagement clarity | Trigger, action, reward, investment, recurrence path | Product, Brief |
-| **Non-goals** | Scope drift, ambiguity, or overreach | Explicit exclusions | Strategy, Product, Brief, Implementation |
-| **Experiment / Hypothesis** | Iteration is a bet that needs structure | Hypothesis, method, success/failure criteria | Brief |
-| **Opportunity Solution Tree** | Complex product needs structured path from opportunities to solutions | Outcome, major opportunities, solution branches | Product, Strategy |
-
-### Optional (later)
-
-RICE-lite, Tenets, DIBB, Appetite, Kill criteria, 11-star
-
-### Framework-to-Doc Mapping
-
-| Doc | Framework posture |
-|---|---|
-| Charter | Principles/tenets only. Not framework-heavy. |
-| Manifesto | Mostly native writing. Should not feel framework-generated. |
-| Brand | Mostly native writing. |
-| Design System | Mostly native system rules. |
-| Thesis | Best place for: JTBD, PR/FAQ, assumptions, falsifiability |
-| Strategy | Best place for: North Star / KPI, non-goals, wedge, risk |
-| Product | Best place for: JTBD, analogy, loops, structure, boundaries |
-| Brief | Best place for: signals, hypothesis, success/kill criteria, appetite |
-| Implementation | Framework-light. Technical and executable. |
+- Principles are stated as truths, not criteria. They shape reasoning, not grading.
+- Not every section needs 5 principles. 2 or 3 load-bearing truths is often enough.
+- When canonical sources disagree, the per-doc file flags the tension. Surface it as a decision for the builder, never silently pick.
+- Reasoning is contextual via Pareto (80/20 for this case). The agent pushes back once when a draft violates a principle, then defers to the builder.
+- Observation and inference must stay distinct. If the draft crosses beyond what was observed, either ask for more signal or label the move as inference.
+- A concrete scene can open a claim, but it does not prove the category. Repeated signal earns generalization.
+- Never invent motives, incentives, failed fixes, or certainty to make a paragraph land.
+- Prefer mechanism over villain. Reach for structure, defaults, incentives, and missing apprenticeship before bad actors.
+- "Why now" needs a concrete unlock or cost shift. If the unlock is weak, say so.
+- The agent never performs the scaffold back to the builder. Use the references to think, then speak plainly.
 
 ---
 
@@ -377,12 +416,16 @@ RICE-lite, Tenets, DIBB, Appetite, Kill criteria, 11-star
 minimal canonical shape + optional modules
 ```
 
-- Doc spine required when the doc exists
-- The project does not need every doc on day one
-- Sections removable
-- Modules optional
-- Every section must materially improve the quality, speed, or correctness of a decision
-- Humans need flexibility, agents need predictable semantics
+These are typed reasoning artifacts, not generic docs. Each doc answers one question only.
+
+- Dense seeds beat exhaustive text. Minimal default, modular expansion.
+- Non-goals matter as much as goals. Explicit exclusions everywhere.
+- Structure must serve both humans and agents. Human-readable markdown, agent-navigable semantics.
+- The system should feel alive, not ceremonial. If a doc isn't being used to make decisions, it shouldn't exist.
+- Dates on everything. Context decays.
+- Frameworks are invisible. Distilled into per-section principles for drafting docs in `references/docs/`, with `references/docs/engine/twin.md` as the regeneration-only exception.
+- Doc spine required when the doc exists. The project does not need every doc on day one.
+- Sections removable. Modules optional. Humans need flexibility, agents need predictable semantics.
 
 **Rule:** Every section earns its place. If empty, remove it. No blank templates.
 
@@ -431,3 +474,9 @@ Iteration = product direction (the bet). Phase = unit of work (the execution sli
 - Bootstrap flow for the new doc set
 - Skill mode definitions for the new protocol shape
 - Framework module implementation details
+
+---
+
+## Sessions
+
+- 2026-04-23 — Added sessions.md as root-level engine doc, introduced fourth cut (thinking in motion), bumped protocol to v2.0.0 · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

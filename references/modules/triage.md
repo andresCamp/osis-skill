@@ -84,6 +84,10 @@ Triggered by user intent: "triage," "let's go through the inbox," "what's in the
 5. **Execute approved outcomes.** Writes happen in the subagent to keep the chat clean. Update `osis.json` inbox array and any affected doc manifests. Log to the relevant `{version}/changelog.md`.
 6. **Session footer** on every touched doc.
 
+### Session Log
+
+Triage is a strong-moment source on both ends. Append a bullet to the current thread in `osis/sessions.md` when Triage mode is entered (name it as Triage entry, note inbox size) and again on the completion summary (name the outcomes by count: discards, distills, moves). If topic or areas are still `pending`, infer and write them alongside the first append. If `bash {SKILL_PATH}/scripts/session-id.sh` returns non-zero or `sessions.md` is missing, skip the append silently.
+
 ### The Three Outcomes
 
 Every inbox item (or group of converged items) resolves to exactly one of these:
@@ -143,3 +147,9 @@ Both Osis and the user can write to the inbox.
 **User writes** when they drop anything manually: pasted content, screenshots, a single sentence. No format required. Osis does not reformat user drops on arrival — that's triage's job.
 
 Either way, update the `osis.json` inbox array on write.
+
+---
+
+## Sessions
+
+- 2026-04-23 — Added Session Log section, triage as strong-moment source on mode entry and completion · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

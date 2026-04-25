@@ -30,14 +30,53 @@ One paragraph describing what shipped, in warm user-facing language.
 | Operation | Action | Notes |
 |---|---|---|
 | `Rename: A → B` | `mv A B`, byte-faithful content | Pure path move. If the template also changed, pair with a separate `Reshape: B`. |
-| `Reshape: P` | Read current content at `P`, rewrite in the current template shape (from `references/templates.md`), preserve product decisions. | Osis rewrites osis's own output. Never deletes information. |
-| `New: P` | `Write` an empty shell at `P` using the current template. Try to seed from existing product decisions elsewhere in `osis/` if obvious. | Empty only as fallback. |
+| `Reshape: P` | Read current content at `P`, rewrite in the current template shape from the matching file in `references/docs/funnel/` or `references/docs/engine/`, preserve product decisions. | Osis rewrites osis's own output. Never deletes information. |
+| `New: P` | `Write` an empty shell at `P` using the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`. Try to seed from existing product decisions elsewhere in `osis/` if obvious. | Empty only as fallback. |
 | `Folder: A/ → B/` | `mv A/ B/`, all contents preserved. | Wildcards in the pattern (`phase-*/` → `iteration-*/`) indicate a naming convention change; the agent matches old names and picks reasonable new names. |
 | `Deprecate: P` | `rm P`. Git preserves history. | Content is not migrated anywhere unless a concurrent `Reshape` or `New` indicates otherwise. |
 
 Paths use backticks. `{placeholders}` are literal markers the agent resolves against the user's `osis.json` (`{version}` → `v0`, `{iteration}` → actual iteration slug, `{system}` → actual system name, `{phase}` → actual phase name).
 
-`references/protocol.md` and `references/templates.md` carry the doc semantics. The changelog names what changed; those files explain what each doc is.
+`references/protocol.md` and the per-doc files under `references/docs/` carry the doc semantics. The changelog names what changed; those files explain what each doc is.
+
+---
+
+## v1.8.0: Sessions log + per-doc principles (2026-04-23)
+
+Osis now treats every activated conversation as a product-thinking thread. A new root-level `sessions.md` captures that thread per session, with preflight opening it on the first substantive turn and strong-moment hooks appending bullets as real product work lands. Alongside that, the monolithic `references/templates.md` is replaced by a per-doc layer under `references/docs/`, giving each funnel and engine doc its own canonical file with distilled reasoning principles instead of one shared template dump. The three progressive-disclosure playbooks (onboarding, triage, maintenance) move into `references/modules/` so every mode-playbook sits in one place. Protocol shape bumps to v2.0.0.
+
+### Structural Changes
+
+- New: `osis/sessions.md`
+- Reshape: `references/protocol.md`
+- Rename: `references/onboarding.md` → `references/modules/onboarding.md`
+- Rename: `references/triage.md` → `references/modules/triage.md`
+- Rename: `references/maintenance.md` → `references/modules/maintenance.md`
+- New: `references/docs/funnel/charter.md`
+- New: `references/docs/funnel/manifesto.md`
+- New: `references/docs/funnel/brand.md`
+- New: `references/docs/funnel/design-system.md`
+- New: `references/docs/funnel/thesis.md`
+- New: `references/docs/funnel/strategy.md`
+- New: `references/docs/funnel/product.md`
+- New: `references/docs/funnel/brief.md`
+- New: `references/docs/engine/impl.md`
+- New: `references/docs/engine/signals.md`
+- New: `references/docs/engine/changelog.md`
+- New: `references/docs/engine/twin.md`
+- Deprecate: `references/templates.md`
+
+### Skill Changes
+
+- **Sessions log as a fourth cut.** Protocol now names four cuts of abstraction: Twin (what the product IS), Funnel docs (what it's BECOMING), crystallized Engine docs (why it moved), and in-motion Engine docs (the thinking itself). `sessions.md` is the in-motion doc: append-only, most-recent-first, one entry per osis-activated conversation. Sibling-session entries are independent threads; the log respects the parallel-session reality of Claude Code use.
+- **Session Preflight.** Runs exactly once per session, on the first substantive user turn after the greeting. Resolves the current session ID, scans `sessions.md` for a matching heading, and prepends a fresh stub with `Topic: pending` and `Areas: pending` if none exists. Preflight never modifies entries from other sessions. It is silent, never narrates, and is suppressed entirely during onboarding (the onboarding subagent owns `sessions.md` scaffolding).
+- **Strong-moment hooks per mode.** Consult appends a bullet after each doc write, each aligned inline decision, and explicit capture cues ("log this", "note this"). Triage, Twin, Analyze, and Update append at both mode entry and completion. When topic or areas are still `pending`, the first strong moment infers both from context and writes them in place. All writes are silent.
+- **Per-doc reasoning layer.** `references/templates.md` is replaced by a folder of per-doc files under `references/docs/funnel/` (charter, manifesto, brand, design-system, thesis, strategy, product, brief) and `references/docs/engine/` (impl, signals, changelog, twin). Each file carries per-section reasoning principles stated as truths, not criteria, distilled from canonical product thinking. Drafting docs carry principles; `references/docs/engine/twin.md` is the deliberate exception: template-only, because Twin mode regenerates from code instead of drafting section by section.- **Drafting discipline baked into principles.** The protocol's Frameworks section is rewritten around the per-doc files. Observation and inference must stay distinct; a concrete scene can open a claim but doesn't prove the category; never invent motives, incentives, failed fixes, or certainty; prefer mechanism over villain; "why now" needs a concrete unlock. The agent pushes back once when a draft violates a principle, then defers to the builder. The old "Core Framework Set" table (JTBD, PR/FAQ, North Star, Loop, etc.) is retired as a user-facing surface and lives inside the per-doc principles instead.- **References restructure.** The three progressive-disclosure playbooks move to `references/modules/onboarding.md`, `references/modules/triage.md`, and `references/modules/maintenance.md`. SKILL.md, README.md, and the SKILL.md Conversation Initialization pointer all now read from the new paths.
+- **Funnel as a branching tree.** The protocol adds a "Funnel as a Branching Tree" section with a worked tree diagram. The altitude ladder remains the conceptual spine; the instantiated funnel branches at the altitude where shared scope ends. Principle 5 (Protocol spine, adaptive shape) now explicitly names adaptive altitude: a constraint lives at the altitude where its scope is still shared, and branches downward where sharing ends.
+- **Monorepo modules routing.** Mode Detection for `type: "org"` now reads both the `products` and `modules` maps. Products route to a product's `osis/` tree; modules route to `osis/{module-slug}/` and the skill reads the module's `README.md` for entry behavior and phase playbooks before engaging. Product context loading gains the same split.- **`modules` map in `osis.json`.** Both org and product `osis.json` scaffolds now include `"modules": {}` at the top level, and the product template also registers `sessions` in the `files` manifest. `onboard.sh` writes both on first scaffold.- **Always-scaffolded set expands.** `onboard.sh` now writes `osis/sessions.md` with an intro line and a trailing divider alongside `osis.json`, `README.md`, `twin.md`, `inbox/`, `{version}/changelog.md`, and `{version}/core/`. The scaffold summary printed at end of run lists `sessions.md` in the tree.
+- **Sessions footer carve-out.** The per-doc Sessions footer convention now excludes `sessions.md` (in addition to `osis.json` and `README.md`). `sessions.md` embeds session IDs in every entry heading, so a separate footer would double the record.
+- **Migration agent reads per-doc files.** `references/migration.md` is updated: `Reshape` and `New` operations now pull the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`, not from `references/templates.md`. The operation contract in the changelog Heuristic header is updated to match.
+- **Onboarding playbook carries sessions + twin geometry.** `references/modules/onboarding.md` adds `sessions.md` to the always-created set, documents preflight suppression during onboarding, and points at `references/docs/engine/twin.md` for monorepo repo-map diagram geometry.- **Protocol version bumps to v2.0.0.** `references/protocol.md` header is now `# Osis Protocol v2.0.0`. Shape-bearing changes across the release (new `sessions.md` doc type, per-doc reasoning layer, branching-tree shape, `modules` routing) warrant a major protocol bump.
 
 ---
 
