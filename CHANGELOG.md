@@ -41,9 +41,9 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
-## v1.8.0: Sessions log + per-doc principles (2026-04-23)
+## v1.8.0: Research-backed reasoning + modules (2026-04-23)
 
-Osis now treats every activated conversation as a product-thinking thread. A new root-level `sessions.md` captures that thread per session, with preflight opening it on the first substantive turn and strong-moment hooks appending bullets as real product work lands. Alongside that, the monolithic `references/templates.md` is replaced by a per-doc layer under `references/docs/`, giving each funnel and engine doc its own canonical file with distilled reasoning principles instead of one shared template dump. The three progressive-disclosure playbooks (onboarding, triage, maintenance) move into `references/modules/` so every mode-playbook sits in one place. Protocol shape bumps to v2.0.0.
+Osis becomes a research-backed reasoning architecture. The monolithic `references/templates.md` is replaced by per-doc files under `references/docs/funnel/` and `references/docs/engine/`, each carrying reasoning principles distilled from deep research into canonical product frameworks (JTBD, PR/FAQ, Loop, North Star, and more). Modules wrap activities like customer discovery as typed surfaces in `osis.json` alongside products, with their own entry behavior and phase playbooks. The funnel becomes a branching tree where constraints live at the altitude their scope is shared. A new `osis/sessions.md` captures every osis-activated conversation as a logged product-thinking thread. The progressive-disclosure playbooks (onboarding, triage, maintenance) consolidate into `references/modules/`. Protocol shape bumps to v2.0.0.
 
 ### Structural Changes
 
