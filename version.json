@@ -1,5 +1,5 @@
 {
-  "version": "1.8.1",
-  "title": "Quieter session log",
-  "description": "Session-log writes are now buffered in working context and flushed at natural lulls or on explicit capture cues like 'log this' or 'save this'. No more per-turn writes interrupting chat flow."
+  "version": "1.8.2",
+  "title": "Changelog reads as a record",
+  "description": "The changelog's structural-changes section is reframed from imperative ('New:', 'Rename:', 'Deprecate:') to declarative ('Added:', 'Renamed:', 'Removed:') under a new '### Shape' heading. Same machine-readable data, less instruction-flavored voice. Migration parser supports both new and legacy formats."
 }

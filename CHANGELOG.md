@@ -11,14 +11,13 @@ Every release entry follows this shape:
 
 One paragraph describing what shipped, in warm user-facing language.
 
-### Structural Changes
-(Only present when the protocol shape changes. If absent, migration is a no-op for this release.)
+### Shape
+(Only present when the protocol shape changes. If absent, migration is a no-op for this release. Reads as a record of what changed in this release, not as instructions to the migration agent.)
 
-- Rename: `{old_path}` → `{new_path}`
-- Reshape: `{path}`
-- New: `{path}`
-- Folder: `{old_pattern}/` → `{new_pattern}/`
-- Deprecate: `{path}`
+- Added: `{path}`
+- Renamed: `{old_path}` → `{new_path}`
+- Reshaped: `{path}`
+- Removed: `{path}`
 
 ### Skill Changes
 
@@ -29,15 +28,30 @@ One paragraph describing what shipped, in warm user-facing language.
 
 | Operation | Action | Notes |
 |---|---|---|
-| `Rename: A → B` | `mv A B`, byte-faithful content | Pure path move. If the template also changed, pair with a separate `Reshape: B`. |
-| `Reshape: P` | Read current content at `P`, rewrite in the current template shape from the matching file in `references/docs/funnel/` or `references/docs/engine/`, preserve product decisions. | Osis rewrites osis's own output. Never deletes information. |
-| `New: P` | `Write` an empty shell at `P` using the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`. Try to seed from existing product decisions elsewhere in `osis/` if obvious. | Empty only as fallback. |
-| `Folder: A/ → B/` | `mv A/ B/`, all contents preserved. | Wildcards in the pattern (`phase-*/` → `iteration-*/`) indicate a naming convention change; the agent matches old names and picks reasonable new names. |
-| `Deprecate: P` | `rm P`. Git preserves history. | Content is not migrated anywhere unless a concurrent `Reshape` or `New` indicates otherwise. |
+| `Renamed: A → B` | `mv A B`, byte-faithful content | Pure path move. Works for files and folders (folder paths end with `/`). If the template also changed, pair with a separate `Reshaped: B`. Wildcard folder patterns (`phase-*/` → `iteration-*/`) enumerate matches and pick reasonable new names. |
+| `Reshaped: P` | Read current content at `P`, rewrite in the current template shape from the matching file in `references/docs/funnel/` or `references/docs/engine/`, preserve product decisions. | Osis rewrites osis's own output. Never deletes information. |
+| `Added: P` | `Write` an empty shell at `P` using the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`. Try to seed from existing product decisions elsewhere in `osis/` if obvious. | Empty only as fallback. |
+| `Removed: P` | `rm P`. Git preserves history. | Content is not migrated anywhere unless a concurrent `Reshaped` or `Added` indicates otherwise. |
 
 Paths use backticks. `{placeholders}` are literal markers the agent resolves against the user's `osis.json` (`{version}` → `v0`, `{iteration}` → actual iteration slug, `{system}` → actual system name, `{phase}` → actual phase name).
 
+**Legacy format.** Releases up through v1.8.1 used `### Structural Changes` as the section heading and operation verbs `New`, `Rename`, `Reshape`, `Folder`, `Deprecate`. The migration parser recognizes both formats so older entries still upgrade correctly.
+
 `references/protocol.md` and the per-doc files under `references/docs/` carry the doc semantics. The changelog names what changed; those files explain what each doc is.
+
+---
+
+## v1.8.2: Changelog reads as a record (2026-04-26)
+
+The changelog's `### Structural Changes` section read as imperative instructions to the migration agent: `New:`, `Rename:`, `Deprecate:`. This release reframes it as a record of what changed in the release. Heading becomes `### Shape`; verbs go past-tense: `Added:`, `Renamed:`, `Reshaped:`, `Removed:`. Same machine-readable data, declarative voice. The migration parser supports both new and legacy formats, so older entries still upgrade cleanly. v1.8.0's section is restated in the new shape so the changelog reads consistently end-to-end.
+
+### Skill Changes
+
+- **`### Shape` replaces `### Structural Changes`** as the canonical section heading. The Heuristic at the top of CHANGELOG.md is rewritten to document the new format, with a Legacy callout naming the old heading and verbs.
+- **Past-tense verbs replace imperative verbs.** `Added`, `Renamed`, `Reshaped`, `Removed`. The legacy `Folder:` op collapses into `Renamed:` (folder paths end with `/`, wildcard patterns still work). The operation contract table is restated in past tense.
+- **Migration parser updated.** `references/migration.md` recognizes both `### Shape` (new) and `### Structural Changes` (legacy), and both verb sets. New names are canonical; each Operations subsection notes its legacy alias.
+- **v1.8.0 entry restated.** Same byte-equivalent meaning per bullet, new verbs and heading. No semantic change; the rewrite is for internal consistency only.
+- No protocol shape change in v1.8.2 itself.
 
 ---
 
@@ -59,26 +73,26 @@ Session-log writes were leaking into chat one tool call at a time: a Session Pre
 
 Osis becomes a research-backed reasoning architecture. The monolithic `references/templates.md` is replaced by per-doc files under `references/docs/funnel/` and `references/docs/engine/`, each carrying reasoning principles distilled from deep research into canonical product frameworks (JTBD, PR/FAQ, Loop, North Star, and more). Modules wrap activities like customer discovery as typed surfaces in `osis.json` alongside products, with their own entry behavior and phase playbooks. The funnel becomes a branching tree where constraints live at the altitude their scope is shared. A new `osis/sessions.md` captures every osis-activated conversation as a logged product-thinking thread. The progressive-disclosure playbooks (onboarding, triage, maintenance) consolidate into `references/modules/`. Protocol shape bumps to v2.0.0.
 
-### Structural Changes
+### Shape
 
-- New: `osis/sessions.md`
-- Reshape: `references/protocol.md`
-- Rename: `references/onboarding.md` → `references/modules/onboarding.md`
-- Rename: `references/triage.md` → `references/modules/triage.md`
-- Rename: `references/maintenance.md` → `references/modules/maintenance.md`
-- New: `references/docs/funnel/charter.md`
-- New: `references/docs/funnel/manifesto.md`
-- New: `references/docs/funnel/brand.md`
-- New: `references/docs/funnel/design-system.md`
-- New: `references/docs/funnel/thesis.md`
-- New: `references/docs/funnel/strategy.md`
-- New: `references/docs/funnel/product.md`
-- New: `references/docs/funnel/brief.md`
-- New: `references/docs/engine/impl.md`
-- New: `references/docs/engine/signals.md`
-- New: `references/docs/engine/changelog.md`
-- New: `references/docs/engine/twin.md`
-- Deprecate: `references/templates.md`
+- Added: `osis/sessions.md`
+- Reshaped: `references/protocol.md`
+- Renamed: `references/onboarding.md` → `references/modules/onboarding.md`
+- Renamed: `references/triage.md` → `references/modules/triage.md`
+- Renamed: `references/maintenance.md` → `references/modules/maintenance.md`
+- Added: `references/docs/funnel/charter.md`
+- Added: `references/docs/funnel/manifesto.md`
+- Added: `references/docs/funnel/brand.md`
+- Added: `references/docs/funnel/design-system.md`
+- Added: `references/docs/funnel/thesis.md`
+- Added: `references/docs/funnel/strategy.md`
+- Added: `references/docs/funnel/product.md`
+- Added: `references/docs/funnel/brief.md`
+- Added: `references/docs/engine/impl.md`
+- Added: `references/docs/engine/signals.md`
+- Added: `references/docs/engine/changelog.md`
+- Added: `references/docs/engine/twin.md`
+- Removed: `references/templates.md`
 
 ### Skill Changes
 
