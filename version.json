@@ -1,5 +1,5 @@
 {
-  "version": "1.8.2",
-  "title": "Changelog reads as a record",
-  "description": "The changelog's structural-changes section is reframed from imperative ('New:', 'Rename:', 'Deprecate:') to declarative ('Added:', 'Renamed:', 'Removed:') under a new '### Shape' heading. Same machine-readable data, less instruction-flavored voice. Migration parser supports both new and legacy formats."
+  "version": "1.8.3",
+  "title": "Log and Migration",
+  "description": "Changelog format settles on two voices: '### Log' records every file-level change in past-tense, '### Migration' tells existing users what to do in imperative. The previous '### Shape' and '### Skill Changes' sections are dropped; top paragraph carries synthesis, Log carries detail."
 }

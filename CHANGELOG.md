@@ -9,63 +9,64 @@ Every release entry follows this shape:
 ```markdown
 ## v{version}: {title} ({YYYY-MM-DD})
 
-One paragraph describing what shipped, in warm user-facing language.
+One paragraph (or more) describing what shipped, in warm user-facing
+language. The narrative carries synthesis and behavior detail.
 
-### Shape
-(Only present when the protocol shape changes. If absent, migration is a no-op for this release. Reads as a record of what changed in this release, not as instructions to the migration agent.)
+### Log
+(Only present when files are added, renamed, removed, or reshaped in
+the skill source or in user repos. Past-tense, comprehensive: every
+file-level change in the release.)
 
 - Added: `{path}`
 - Renamed: `{old_path}` → `{new_path}`
 - Reshaped: `{path}`
 - Removed: `{path}`
 
-### Skill Changes
+### Migration
+(Only present when user repos are affected. Imperative, tiny: the
+subset of Log that the migration agent applies to user `osis/`
+folders.)
 
-- Non-structural: new modes, features, fixes, behavior changes.
+- Add: `{path}`
+- Rename: `{old_path}` → `{new_path}`
+- Reshape: `{path}`
+- Remove: `{path}`
 ```
 
-**Operation contract** (what the migration agent does per line):
+Two voices on purpose. Log records what happened in past-tense; Migration tells the existing user what to do in imperative.
+
+**Migration agent contract** (what the agent does per `### Migration` line):
 
 | Operation | Action | Notes |
 |---|---|---|
-| `Renamed: A → B` | `mv A B`, byte-faithful content | Pure path move. Works for files and folders (folder paths end with `/`). If the template also changed, pair with a separate `Reshaped: B`. Wildcard folder patterns (`phase-*/` → `iteration-*/`) enumerate matches and pick reasonable new names. |
-| `Reshaped: P` | Read current content at `P`, rewrite in the current template shape from the matching file in `references/docs/funnel/` or `references/docs/engine/`, preserve product decisions. | Osis rewrites osis's own output. Never deletes information. |
-| `Added: P` | `Write` an empty shell at `P` using the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`. Try to seed from existing product decisions elsewhere in `osis/` if obvious. | Empty only as fallback. |
-| `Removed: P` | `rm P`. Git preserves history. | Content is not migrated anywhere unless a concurrent `Reshaped` or `Added` indicates otherwise. |
+| `Rename: A → B` | `mv A B`, byte-faithful content | Pure path move. Works for files and folders (folder paths end with `/`). If the template also changed, pair with a separate `Reshape: B`. Wildcard folder patterns (`phase-*/` → `iteration-*/`) enumerate matches and pick reasonable new names. |
+| `Reshape: P` | Read current content at `P`, rewrite in the current template shape from the matching file in `references/docs/funnel/` or `references/docs/engine/`, preserve product decisions. | Osis rewrites osis's own output. Never deletes information. |
+| `Add: P` | Write an empty shell at `P` using the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`. Try to seed from existing product decisions elsewhere in `osis/` if obvious. | Empty only as fallback. |
+| `Remove: P` | `rm P`. Git preserves history. | Content is not migrated anywhere unless a concurrent `Reshape` or `Add` indicates otherwise. |
 
 Paths use backticks. `{placeholders}` are literal markers the agent resolves against the user's `osis.json` (`{version}` → `v0`, `{iteration}` → actual iteration slug, `{system}` → actual system name, `{phase}` → actual phase name).
 
-**Legacy format.** Releases up through v1.8.1 used `### Structural Changes` as the section heading and operation verbs `New`, `Rename`, `Reshape`, `Folder`, `Deprecate`. The migration parser recognizes both formats so older entries still upgrade correctly.
+**Legacy formats.** Releases up through v1.8.1 used `### Structural Changes` as the section heading with imperative verbs `New`, `Rename`, `Reshape`, `Folder`, `Deprecate`. v1.8.2 briefly used `### Shape` with past-tense verbs `Added`, `Renamed`, `Reshaped`, `Removed`. The migration parser recognizes legacy formats so older entries still upgrade correctly.
 
 `references/protocol.md` and the per-doc files under `references/docs/` carry the doc semantics. The changelog names what changed; those files explain what each doc is.
 
 ---
 
+## v1.8.3: Log and Migration (2026-04-26)
+
+The changelog format settles on two voices. `### Log` records what happened in past-tense (every file-level change in the release, comprehensive). `### Migration` tells existing users what to do in imperative (the tiny subset that affects their `osis/` folder). v1.8.2's `### Shape` section is dropped. The previous `### Skill Changes` section is dropped because the top paragraph now carries synthesis and Log carries the file-level detail. v1.8.0 is restated under the new format. The migration parser recognizes `### Migration` as canonical, plus legacy `### Structural Changes` so older releases still upgrade correctly.
+
+---
+
 ## v1.8.2: Changelog reads as a record (2026-04-26)
 
-The changelog's `### Structural Changes` section read as imperative instructions to the migration agent: `New:`, `Rename:`, `Deprecate:`. This release reframes it as a record of what changed in the release. Heading becomes `### Shape`; verbs go past-tense: `Added:`, `Renamed:`, `Reshaped:`, `Removed:`. Same machine-readable data, declarative voice. The migration parser supports both new and legacy formats, so older entries still upgrade cleanly. v1.8.0's section is restated in the new shape so the changelog reads consistently end-to-end.
-
-### Skill Changes
-
-- **`### Shape` replaces `### Structural Changes`** as the canonical section heading. The Heuristic at the top of CHANGELOG.md is rewritten to document the new format, with a Legacy callout naming the old heading and verbs.
-- **Past-tense verbs replace imperative verbs.** `Added`, `Renamed`, `Reshaped`, `Removed`. The legacy `Folder:` op collapses into `Renamed:` (folder paths end with `/`, wildcard patterns still work). The operation contract table is restated in past tense.
-- **Migration parser updated.** `references/migration.md` recognizes both `### Shape` (new) and `### Structural Changes` (legacy), and both verb sets. New names are canonical; each Operations subsection notes its legacy alias.
-- **v1.8.0 entry restated.** Same byte-equivalent meaning per bullet, new verbs and heading. No semantic change; the rewrite is for internal consistency only.
-- No protocol shape change in v1.8.2 itself.
+The changelog's `### Structural Changes` section read as imperative instructions to the migration agent: `New:`, `Rename:`, `Deprecate:`. This release reframes it as a record of what changed in the release. Heading becomes `### Shape`; verbs go past-tense: `Added:`, `Renamed:`, `Reshaped:`, `Removed:`. Same machine-readable data, declarative voice. The migration parser supports both new and legacy formats, so older entries still upgrade cleanly. v1.8.0's section is restated in the new shape so the changelog reads consistently end-to-end. (Superseded by v1.8.3.)
 
 ---
 
 ## v1.8.1: Quieter session log (2026-04-26)
 
-Session-log writes were leaking into chat one tool call at a time: a Session Preflight on the first substantive turn, plus a small Edit at every strong moment after that. In a dense conversation that's three or four visible writes a session, all of which look identical to the user (a tiny bullet appended to a file). This release replaces that with a buffered model. Strong moments are tracked silently in working context and flushed in one Edit at a natural lull (a major doc write landing, a topic pivot, conversational acks like "ok / nice / thanks") or on explicit capture cues ("log this," "save this," "checkpoint," "wrap this up"). Sessions without a lull and no cue produce no entry at all. Missing beats empty.
-
-### Skill Changes
-
-- **Session Preflight removed.** SKILL.md no longer pre-creates an entry on the first substantive turn. Conversation Initialization step 4 is gone.
-- **Session Log Buffering added.** New SKILL.md section describes the buffer-and-flush model: track moments silently, flush on lull or cue, one flush is one Edit, never narrate. Lull and cue lists are explicit so behavior is consistent across agent calls.
-- **Per-mode strong-moment language updated.** Triage, Consult, Update, Analyze, and Twin sections now describe their moments as candidate bullets that feed the buffer, not as immediate appends.
-- **Doc Conventions Session Log cross-reference** updated to point at the new buffering section.
-- No protocol shape change. No template changes, no doc renames, no scaffold changes. Existing repos see no migration.
+Session-log writes were leaking into chat one tool call at a time: a Session Preflight on the first substantive turn, plus a small Edit at every strong moment after that. In a dense conversation that's three or four visible writes a session, all of which look identical to the user (a tiny bullet appended to a file). This release replaces that with a buffered model. Strong moments are tracked silently in working context and flushed in one Edit at a natural lull (a major doc write landing, a topic pivot, conversational acks like "ok / nice / thanks") or on explicit capture cues ("log this," "save this," "checkpoint," "wrap this up"). Sessions without a lull and no cue produce no entry at all. Missing beats empty. SKILL.md drops the Session Preflight section, adds a new Session Log Buffering section, and updates per-mode strong-moment language to describe candidate bullets that feed the buffer rather than immediate appends. No protocol shape change.
 
 ---
 
@@ -73,7 +74,7 @@ Session-log writes were leaking into chat one tool call at a time: a Session Pre
 
 Osis becomes a research-backed reasoning architecture. The monolithic `references/templates.md` is replaced by per-doc files under `references/docs/funnel/` and `references/docs/engine/`, each carrying reasoning principles distilled from deep research into canonical product frameworks (JTBD, PR/FAQ, Loop, North Star, and more). Modules wrap activities like customer discovery as typed surfaces in `osis.json` alongside products, with their own entry behavior and phase playbooks. The funnel becomes a branching tree where constraints live at the altitude their scope is shared. A new `osis/sessions.md` captures every osis-activated conversation as a logged product-thinking thread. The progressive-disclosure playbooks (onboarding, triage, maintenance) consolidate into `references/modules/`. Protocol shape bumps to v2.0.0.
 
-### Shape
+### Log
 
 - Added: `osis/sessions.md`
 - Reshaped: `references/protocol.md`
@@ -94,17 +95,9 @@ Osis becomes a research-backed reasoning architecture. The monolithic `reference
 - Added: `references/docs/engine/twin.md`
 - Removed: `references/templates.md`
 
-### Skill Changes
+### Migration
 
-- **Sessions log as a fourth cut.** Protocol now names four cuts of abstraction: Twin (what the product IS), Funnel docs (what it's BECOMING), crystallized Engine docs (why it moved), and in-motion Engine docs (the thinking itself). `sessions.md` is the in-motion doc: append-only, most-recent-first, one entry per osis-activated conversation. Sibling-session entries are independent threads; the log respects the parallel-session reality of Claude Code use.
-- **Session Preflight.** Runs exactly once per session, on the first substantive user turn after the greeting. Resolves the current session ID, scans `sessions.md` for a matching heading, and prepends a fresh stub with `Topic: pending` and `Areas: pending` if none exists. Preflight never modifies entries from other sessions. It is silent, never narrates, and is suppressed entirely during onboarding (the onboarding subagent owns `sessions.md` scaffolding).
-- **Strong-moment hooks per mode.** Consult appends a bullet after each doc write, each aligned inline decision, and explicit capture cues ("log this", "note this"). Triage, Twin, Analyze, and Update append at both mode entry and completion. When topic or areas are still `pending`, the first strong moment infers both from context and writes them in place. All writes are silent.
-- **Per-doc reasoning layer.** `references/templates.md` is replaced by a folder of per-doc files under `references/docs/funnel/` (charter, manifesto, brand, design-system, thesis, strategy, product, brief) and `references/docs/engine/` (impl, signals, changelog, twin). Each file carries per-section reasoning principles stated as truths, not criteria, distilled from canonical product thinking. Drafting docs carry principles; `references/docs/engine/twin.md` is the deliberate exception: template-only, because Twin mode regenerates from code instead of drafting section by section.- **Drafting discipline baked into principles.** The protocol's Frameworks section is rewritten around the per-doc files. Observation and inference must stay distinct; a concrete scene can open a claim but doesn't prove the category; never invent motives, incentives, failed fixes, or certainty; prefer mechanism over villain; "why now" needs a concrete unlock. The agent pushes back once when a draft violates a principle, then defers to the builder. The old "Core Framework Set" table (JTBD, PR/FAQ, North Star, Loop, etc.) is retired as a user-facing surface and lives inside the per-doc principles instead.- **References restructure.** The three progressive-disclosure playbooks move to `references/modules/onboarding.md`, `references/modules/triage.md`, and `references/modules/maintenance.md`. SKILL.md, README.md, and the SKILL.md Conversation Initialization pointer all now read from the new paths.
-- **Funnel as a branching tree.** The protocol adds a "Funnel as a Branching Tree" section with a worked tree diagram. The altitude ladder remains the conceptual spine; the instantiated funnel branches at the altitude where shared scope ends. Principle 5 (Protocol spine, adaptive shape) now explicitly names adaptive altitude: a constraint lives at the altitude where its scope is still shared, and branches downward where sharing ends.
-- **Monorepo modules routing.** Mode Detection for `type: "org"` now reads both the `products` and `modules` maps. Products route to a product's `osis/` tree; modules route to `osis/{module-slug}/` and the skill reads the module's `README.md` for entry behavior and phase playbooks before engaging. Product context loading gains the same split.- **`modules` map in `osis.json`.** Both org and product `osis.json` scaffolds now include `"modules": {}` at the top level, and the product template also registers `sessions` in the `files` manifest. `onboard.sh` writes both on first scaffold.- **Always-scaffolded set expands.** `onboard.sh` now writes `osis/sessions.md` with an intro line and a trailing divider alongside `osis.json`, `README.md`, `twin.md`, `inbox/`, `{version}/changelog.md`, and `{version}/core/`. The scaffold summary printed at end of run lists `sessions.md` in the tree.
-- **Sessions footer carve-out.** The per-doc Sessions footer convention now excludes `sessions.md` (in addition to `osis.json` and `README.md`). `sessions.md` embeds session IDs in every entry heading, so a separate footer would double the record.
-- **Migration agent reads per-doc files.** `references/migration.md` is updated: `Reshape` and `New` operations now pull the current template from the matching file in `references/docs/funnel/` or `references/docs/engine/`, not from `references/templates.md`. The operation contract in the changelog Heuristic header is updated to match.
-- **Onboarding playbook carries sessions + twin geometry.** `references/modules/onboarding.md` adds `sessions.md` to the always-created set, documents preflight suppression during onboarding, and points at `references/docs/engine/twin.md` for monorepo repo-map diagram geometry.- **Protocol version bumps to v2.0.0.** `references/protocol.md` header is now `# Osis Protocol v2.0.0`. Shape-bearing changes across the release (new `sessions.md` doc type, per-doc reasoning layer, branching-tree shape, `modules` routing) warrant a major protocol bump.
+- Add: `osis/sessions.md`
 
 ---
 

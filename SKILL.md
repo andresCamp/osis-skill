@@ -504,5 +504,5 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 
 ## Sessions
 
-- 2026-04-26 — Replaced Session Preflight with buffered Session Log writes flushed on natural lulls or explicit cues; per-mode strong-moment language now describes candidate bullets feeding the buffer; v1.8.1 fix for chat-flow interruption · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
+- 2026-04-26 — v1.8.1 buffered session log (preflight removed, per-mode strong-moment language updated); v1.8.2 reframed structural changes as `### Shape` with past-tense verbs (later superseded); v1.8.3 settled on `### Log` (past-tense, comprehensive file changes) + `### Migration` (imperative, tiny user-repo subset), dropped `### Skill Changes` section · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
 - 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

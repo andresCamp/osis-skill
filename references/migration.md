@@ -4,7 +4,7 @@ Read this file only when `scripts/update-skill.sh` has just returned successfull
 
 The job is simple: converge the user's `osis/` folder to the current protocol shape. All operations happen in place on `osis/`. Git is the rollback. No sibling folders, no `osis-a/osis-b` swaps.
 
-The source of truth for what to do is `CHANGELOG.md` at the skill root. Each release's `### Shape` section names the operations (legacy releases up through v1.8.1 used `### Structural Changes`; both formats parse). This file says how to apply each operation.
+The source of truth for what to do is `CHANGELOG.md` at the skill root. Each release's `### Migration` section names the operations (legacy releases used `### Structural Changes` or briefly `### Shape`; all formats parse). This file says how to apply each operation.
 
 ## Skill Path
 
@@ -33,8 +33,8 @@ update-skill.sh returned success
         |
         Read ${CLAUDE_SKILL_DIR}/CHANGELOG.md
         |
-        Collect all `### Shape` bullets (or legacy `### Structural
-        Changes`) from entries strictly newer than
+        Collect all `### Migration` bullets (or legacy `### Shape`
+        / `### Structural Changes`) from entries strictly newer than
         osis.json.protocolShape, in order from oldest to newest.
         |
         Apply each operation in order (see Operations below)
@@ -61,22 +61,22 @@ The user does not see any prompt during pre-flight. If a commit happens, it's no
 
 ## CHANGELOG Parsing
 
-Read `${CLAUDE_SKILL_DIR}/CHANGELOG.md`. Collect bullets from every `### Shape` section (or legacy `### Structural Changes`) belonging to a version strictly greater than the user's current `protocolShape`. Parse each bullet as `{Operation}: {details}`.
+Read `${CLAUDE_SKILL_DIR}/CHANGELOG.md`. Collect bullets from every `### Migration` section (or legacy `### Shape` / `### Structural Changes`) belonging to a version strictly greater than the user's current `protocolShape`. Parse each bullet as `{Operation}: {details}`.
 
 Operations to recognize:
 
-- `Added: {path}` (legacy: `New: {path}`)
-- `Renamed: {old_path} → {new_path}` (legacy: `Rename:` for files, `Folder:` for folders; folder paths end with `/`)
-- `Reshaped: {path}` (legacy: `Reshape: {path}`)
-- `Removed: {path}` (legacy: `Deprecate: {path}`)
+- `Add: {path}` (legacy: `New:`, briefly `Added:`)
+- `Rename: {old_path} → {new_path}` (legacy: `Rename:` for files, `Folder:` for folders, briefly `Renamed:`; folder paths end with `/`)
+- `Reshape: {path}` (legacy: `Reshape:`, briefly `Reshaped:`)
+- `Remove: {path}` (legacy: `Deprecate:`, briefly `Removed:`)
 
 Path placeholders (`{version}`, `{iteration}`, `{system}`, `{phase}`) resolve against the user's `osis.json` and folder contents. For patterns containing wildcards (`phase-*/`, `iteration-*/`), enumerate matches in the user's folder and apply per match.
 
-If an operation's source path doesn't exist in the user's folder (e.g. `Renamed: vision.md → manifesto.md` when the user already migrated manually), skip that operation silently. Idempotent.
+If an operation's source path doesn't exist in the user's folder (e.g. `Rename: vision.md → manifesto.md` when the user already migrated manually), skip that operation silently. Idempotent.
 
 ## Operations
 
-### Renamed: A → B  (legacy: `Rename: A → B` for files, `Folder: A/ → B/` for folders)
+### Rename: A → B  (legacy: `Folder: A/ → B/` for folders, briefly `Renamed:`)
 
 `mv A B`. Byte-faithful. No content modification.
 
@@ -87,9 +87,9 @@ For folder paths (trailing `/` on both sides) with wildcard patterns (`phase-*/`
 - `phase-1-ship/` → `iteration-1-ship/` (preserve the slug after the number)
 - `phase-2-lifecycle/` → `iteration-2-lifecycle/`
 
-Use `mv` for the rename. Files inside the folder move with it; no per-file operations needed unless a subsequent `Renamed` or `Reshaped` targets a specific file.
+Use `mv` for the rename. Files inside the folder move with it; no per-file operations needed unless a subsequent `Rename` or `Reshape` targets a specific file.
 
-### Reshaped: P  (legacy: `Reshape: P`)
+### Reshape: P  (legacy: briefly `Reshaped:`)
 
 The doc at path `P` keeps its identity, but its template has changed. Rewrite its content into the new shape:
 
@@ -106,7 +106,7 @@ The doc at path `P` keeps its identity, but its template has changed. Rewrite it
 
 Never delete information. Osis wrote this content through product conversations; osis is just rewriting its own output in the new shape.
 
-### Added: P  (legacy: `New: P`)
+### Add: P  (legacy: `New: P`, briefly `Added:`)
 
 The doc is new to the protocol at this version. Create it:
 
@@ -115,11 +115,11 @@ The doc is new to the protocol at this version. Create it:
 3. If obvious source content exists, draft the new doc with it. If not, leave the shell empty.
 4. Either way, the file exists in the new shape. The user refines during Consult conversations.
 
-### Removed: P  (legacy: `Deprecate: P`)
+### Remove: P  (legacy: `Deprecate: P`, briefly `Removed:`)
 
-`git rm -f P`. The `-f` is required when `P` has just been rename-staged by a preceding `Renamed` op in the same run; otherwise plain `git rm` refuses because the path has changes staged in the index. Git history preserves the file either way.
+`git rm -f P`. The `-f` is required when `P` has just been rename-staged by a preceding `Rename` op in the same run; otherwise plain `git rm` refuses because the path has changes staged in the index. Git history preserves the file either way.
 
-If product decisions from the removed doc should live somewhere in the new shape, a concurrent `Reshaped` or `Added` entry in the same release's Shape section will describe where. The agent reads all operations for the release first, then applies them; for content absorption, extract from the removed doc before deletion.
+If product decisions from the removed doc should live somewhere in the new shape, a concurrent `Reshape` or `Add` entry in the same release's Migration section will describe where. The agent reads all operations for the release first, then applies them; for content absorption, extract from the removed doc before deletion.
 
 ## Post-migration
 
