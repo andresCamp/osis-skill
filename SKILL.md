@@ -180,8 +180,6 @@ When the skill activates, use the pre-loaded values above and do **exactly** the
 
 3. Greet the user per Mode Detection, then wait for their signal.
 
-4. **Session preflight** (see [Session Preflight](#session-preflight)). Do NOT run preflight during silent activation or the greeting. The preflight runs on the **first substantive user turn** after the greeting, as a prerequisite before you respond. A substantive turn is anything other than a one-word ack, a yes/no to the release banner, or the silence before the user has said anything real. Preflight happens once per session; subsequent turns skip it.
-
 **Do not** run `git status`, `git log`, `git diff`, or any other git command during initialization or routine consults. Git is only allowed inside Twin and Analyze modes, where the branch guard runs explicitly. The continuity layer the agent needs already lives in the pre-loaded `Project state` above (`activeVersion`, `lastTwinUpdate`) and in the per-doc session footers — that's the source of truth for "what's in flight," not git state.
 
 If you genuinely need a project status report, the user will ask for one explicitly. Don't infer it.
@@ -226,27 +224,36 @@ The version check runs as SKILL.md preprocessing — the `Local version` and `Re
 
    - **Ambiguous or off-topic reply** (user started talking about something else, ignored the banner, etc.) → treat it as "no" silently and engage with whatever the user actually said. Do NOT add `▲ What's on your mind?` here — the user has already told you what's on their mind by changing the subject.
 
-## Session Preflight
+## Session Log Buffering
 
-Every osis-activated conversation is a **product-thinking thread**. `osis/sessions.md` is the thread log. Preflight opens the current thread (or confirms one is already open) so every strong moment in the session has a home.
+`osis/sessions.md` captures every osis-activated conversation as a product-thinking thread. Writes to it are buffered in working context and flushed at lulls or on explicit cues, never per turn.
 
-Preflight runs exactly once per session, on the **first substantive user turn after the greeting**. Never during the silent activation sequence, never during the greeting render, never in response to a release-banner yes/no. Skip preflight entirely during onboarding when `osis.json` does not yet exist; the onboarding subagent owns sessions.md creation alongside the rest of the scaffold.
+**Track silently.** As decisions land, doc writes complete, tensions surface, alignments form, and key insights emerge, hold them as candidate bullets in your head. Each candidate is one concrete line naming what landed, never the mechanics. Do not write to `sessions.md` after each one.
 
-Logic:
+**Flush on a natural lull.** Triggers:
 
-1. Resolve the current session ID with `bash {SKILL_PATH}/scripts/session-id.sh`. If the script exits non-zero, skip preflight silently for this session and never retry.
-2. Read `osis/sessions.md` (Edit, not Bash). If the file does not exist, skip preflight silently; session-log creation is scoped to onboarding.
-3. Scan the file for a heading matching the current session ID. If one exists, preflight is complete; do not rewrite.
-4. Prepend a new entry at the top of the file (above the most recent existing entry, below the file header and its intro line). The new entry carries:
-   - Heading `## {YYYY-MM-DD} · claude -r {current-session-id}` using the system date.
-   - `**Topic:** pending`
-   - `**Areas:** pending`
-   - No bullets yet.
-   - Divider `---` below the new entry, separating it from the next.
+- A major doc write has just landed (manifesto, brief, twin, etc.).
+- The conversation pivots to a new topic.
+- The user signals a pause: "ok," "nice," "cool," "thanks," "good for now," with no new content following.
+- The session is winding down: "we're done," "that's it for now," "I'll come back to this."
 
-Preflight never modifies entries from other sessions. Sibling-session entries are independent threads, not predecessors. Preflight writes happen silently. Never narrate the action. The user should experience preflight as invisible bookkeeping.
+**Flush on an explicit capture cue.** "log this," "note this," "save this," "checkpoint," "wrap this up." When the user uses one, flush everything accumulated since the last flush.
 
-Topic and areas stay `pending` until a strong-moment append fires (see [Modes](#modes)). When the first strong moment fires in a thread whose topic or areas are still `pending`, infer both from current context, edit them in place, then append the bullet. If the session ends without any strong moment, the entry simply stays at `pending`.
+**One flush is one Edit.** The Edit:
+
+1. Creates the heading if missing: `## {YYYY-MM-DD} · claude -r {session-id}`.
+2. Sets `**Topic:**` and `**Areas:**` if they are still pending or absent. Infer both from session context.
+3. Appends accumulated bullets in chronological order.
+
+Resolve the session ID with `bash {SKILL_PATH}/scripts/session-id.sh` at flush time. If the script exits non-zero, skip the flush silently for this session.
+
+After a flush, clear the working buffer. New moments accumulate from there until the next lull or cue.
+
+**Never narrate.** No "logging this," no "updating sessions.md," no preamble, no postscript. The Edit happens, the conversation moves on.
+
+**Skip during onboarding.** While `osis.json` does not yet exist, all session-log buffering is suppressed. The onboarding subagent owns initial `sessions.md` scaffolding.
+
+If a session ends without a lull and without a capture cue, accumulated moments are not persisted. This is intentional. Missing beats empty.
 
 ## Modes
 
@@ -298,7 +305,7 @@ Processes the inbox. Turns unsorted drops into routed decisions (discard, distil
 
 This logic is progressive-disclosure by design. When the user triggers Triage (says "triage," asks to process the inbox, or equivalent), read [references/modules/triage.md](references/modules/triage.md) and follow the playbook there. Do not load it during routine consults or maintenance.
 
-**Session log:** Triage is a strong-moment source at both ends. Append a bullet to the current session thread in `osis/sessions.md` when Triage mode is entered, and again on the completion summary. If topic or areas are still `pending`, infer and write them alongside the append. Writes happen silently; do not narrate.
+**Session log:** Triage entry and completion are candidate bullets for the session-log buffer. See [Session Log Buffering](#session-log-buffering) for flush behavior.
 
 ### Consult
 
@@ -329,7 +336,7 @@ summary: One-line summary of what was observed.
 
 **When ambiguity is hurting output quality:** force the missing constraint into existence through conversation. This is how the funnel thickens over time.
 
-**Session log:** Consult is a strong-moment source after each doc write and after each aligned decision captured inline (the kind that doesn't touch a doc but changes how the product is being thought about). Append a bullet to the current session thread in `osis/sessions.md` at those moments. The bullet is one concrete line naming what landed; if topic or areas are still `pending`, infer and write them alongside the append. Also respond to explicit capture cues ("log this", "note this") by appending a bullet verbatim from the user or lightly paraphrased. Writes happen silently.
+**Session log:** Each doc write and each aligned inline decision is a candidate bullet for the session-log buffer. See [Session Log Buffering](#session-log-buffering) for flush behavior.
 
 ### Update, Analyze, Twin (Maintenance)
 
@@ -341,7 +348,7 @@ Three post-creation reconciliation modes. They share one contract (branch guard,
 
 This logic is progressive-disclosure by design. When the user triggers any of these modes, read [references/modules/maintenance.md](references/modules/maintenance.md) and follow the playbook there. Do not load it during routine consults or onboarding.
 
-**Session log:** All three modes are strong-moment sources at both ends. Append a bullet to the current session thread in `osis/sessions.md` on mode entry, and again on scan completion (or write completion for Update). Name the artifact touched, not the mechanics. If topic or areas are still `pending`, infer and write them alongside the append. Writes happen silently.
+**Session log:** Mode entry and scan or write completion are candidate bullets for the session-log buffer. Name the artifact touched, not the mechanics. See [Session Log Buffering](#session-log-buffering) for flush behavior.
 
 ## Doc Conventions
 
@@ -377,7 +384,7 @@ This convention applies to every funnel and engine doc except `osis.json`, `READ
 
 A session can land in many doc footers and exactly one session-log entry. A session-log entry can exist without any doc writes at all (open thread, no convergence); a doc footer cannot. Together, the two give both views: from the doc outward (who thought about me) and from the session outward (what did I think about).
 
-Preflight is described in full under [Session Preflight](#session-preflight). Strong-moment appends are described per-mode in [Modes](#modes). Entry shape (heading, Topic, Areas, State, bullets, divider, ordering) is described in the protocol.
+Write behavior is described in full under [Session Log Buffering](#session-log-buffering). Each mode names its candidate-bullet sources in [Modes](#modes). Entry shape (heading, Topic, Areas, bullets, divider, ordering) is described in the protocol.
 
 ## Behavioral Rules
 
@@ -497,4 +504,5 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 
 ## Sessions
 
+- 2026-04-26 — Replaced Session Preflight with buffered Session Log writes flushed on natural lulls or explicit cues; per-mode strong-moment language now describes candidate bullets feeding the buffer; v1.8.1 fix for chat-flow interruption · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
 - 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

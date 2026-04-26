@@ -41,6 +41,20 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.8.1: Quieter session log (2026-04-26)
+
+Session-log writes were leaking into chat one tool call at a time: a Session Preflight on the first substantive turn, plus a small Edit at every strong moment after that. In a dense conversation that's three or four visible writes a session, all of which look identical to the user (a tiny bullet appended to a file). This release replaces that with a buffered model. Strong moments are tracked silently in working context and flushed in one Edit at a natural lull (a major doc write landing, a topic pivot, conversational acks like "ok / nice / thanks") or on explicit capture cues ("log this," "save this," "checkpoint," "wrap this up"). Sessions without a lull and no cue produce no entry at all. Missing beats empty.
+
+### Skill Changes
+
+- **Session Preflight removed.** SKILL.md no longer pre-creates an entry on the first substantive turn. Conversation Initialization step 4 is gone.
+- **Session Log Buffering added.** New SKILL.md section describes the buffer-and-flush model: track moments silently, flush on lull or cue, one flush is one Edit, never narrate. Lull and cue lists are explicit so behavior is consistent across agent calls.
+- **Per-mode strong-moment language updated.** Triage, Consult, Update, Analyze, and Twin sections now describe their moments as candidate bullets that feed the buffer, not as immediate appends.
+- **Doc Conventions Session Log cross-reference** updated to point at the new buffering section.
+- No protocol shape change. No template changes, no doc renames, no scaffold changes. Existing repos see no migration.
+
+---
+
 ## v1.8.0: Research-backed reasoning + modules (2026-04-23)
 
 Osis becomes a research-backed reasoning architecture. The monolithic `references/templates.md` is replaced by per-doc files under `references/docs/funnel/` and `references/docs/engine/`, each carrying reasoning principles distilled from deep research into canonical product frameworks (JTBD, PR/FAQ, Loop, North Star, and more). Modules wrap activities like customer discovery as typed surfaces in `osis.json` alongside products, with their own entry behavior and phase playbooks. The funnel becomes a branching tree where constraints live at the altitude their scope is shared. A new `osis/sessions.md` captures every osis-activated conversation as a logged product-thinking thread. The progressive-disclosure playbooks (onboarding, triage, maintenance) consolidate into `references/modules/`. Protocol shape bumps to v2.0.0.

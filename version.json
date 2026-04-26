@@ -1,5 +1,5 @@
 {
-  "version": "1.8.0",
-  "title": "Research-backed reasoning + modules",
-  "description": "Osis is now research-backed. Per-doc reasoning principles distilled from deep research into canonical product frameworks (JTBD, PR/FAQ, Loop, North Star, and more) drive the agent's drafting silently across every osis doc. Modules wrap activities like customer discovery as typed surfaces in osis.json alongside products. Protocol bumps to v2.0."
+  "version": "1.8.1",
+  "title": "Quieter session log",
+  "description": "Session-log writes are now buffered in working context and flushed at natural lulls or on explicit capture cues like 'log this' or 'save this'. No more per-turn writes interrupting chat flow."
 }
