@@ -1,5 +1,5 @@
 {
-  "version": "1.8.3",
-  "title": "Log and Migration",
-  "description": "Changelog format settles on two voices: '### Log' records every file-level change in past-tense, '### Migration' tells existing users what to do in imperative. The previous '### Shape' and '### Skill Changes' sections are dropped; top paragraph carries synthesis, Log carries detail."
+  "version": "1.8.4",
+  "title": "Tighter iteration and phase rules",
+  "description": "Iteration boundaries split on bet divergence, not surface count. Phases are vertical slices, each shippable on its own."
 }

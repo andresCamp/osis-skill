@@ -52,6 +52,17 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.8.4: Tighter iteration and phase rules (2026-04-28)
+
+Two drafting principles get added to the `brief.md` reference and folded into the `Phase and iteration are not the same` Key Decision in the protocol. First, iteration boundaries split when the bet itself diverges, not when the surface count grows; multiple roles, surfaces, or sub-systems sharing auth, schema, or product identity are phases of one iteration. Second, phases are vertical slices, not horizontal layers; each phase ships a narrow working product on its own. Together these prevent two adjacent failure modes: over-splitting one bet into multiple iterations because surfaces differ, and chunking phases into auth/schema/UI layers that nobody can ship in isolation. No protocol shape change.
+
+### Log
+
+- Reshaped: `references/protocol.md`
+- Reshaped: `references/docs/funnel/brief.md`
+
+---
+
 ## v1.8.3: Log and Migration (2026-04-26)
 
 The changelog format settles on two voices. `### Log` records what happened in past-tense (every file-level change in the release, comprehensive). `### Migration` tells existing users what to do in imperative (the tiny subset that affects their `osis/` folder). v1.8.2's `### Shape` section is dropped. The previous `### Skill Changes` section is dropped because the top paragraph now carries synthesis and Log carries the file-level detail. v1.8.0 is restated under the new format. The migration parser recognizes `### Migration` as canonical, plus legacy `### Structural Changes` so older releases still upgrade correctly.

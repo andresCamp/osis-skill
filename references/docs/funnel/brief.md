@@ -63,6 +63,8 @@ Principles:
 - Phases are ordered by what they teach, not by what is easiest to build first.
 - Each phase carries its own smallest viable test of the bet; a phase that cannot fail teaches nothing.
 - Phase boundaries are cut-lines: the work after a phase must be droppable without invalidating what shipped before it.
+- A bet may have multiple surfaces. Multiple roles, surfaces, or sub-systems on shared infrastructure (auth, schema, product identity) are phases of one iteration, not separate iterations. The bet is unitary when both halves are needed to validate it; splitting iterations on surface count fragments the test.
+- A phase is a vertical slice, not a horizontal layer. If the phase reads as "the auth layer" or "the schema" rather than "a narrow working product," re-cut. Each phase carries enough surface to be observed by a real user (or operator) on its own.
 
 ### Success Criteria
 
@@ -125,3 +127,10 @@ Explicit. What we're leaving alone.
 
 - Optional sections: Appetite, Loop changes.
 - The first brief is often just the current live bet captured cleanly. It does not need to be novel to be worth writing down.
+
+
+---
+
+## Sessions
+
+- 2026-04-28 — Added bet-divergence principle (multiple surfaces on shared infrastructure are phases, not iterations) and vertical-slice principle (phases ship as narrow working products, not horizontal layers) to the Phases section · `claude -r 3d474847-90d6-4b05-9200-795b96b6f325`
