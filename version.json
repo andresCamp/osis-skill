@@ -1,5 +1,5 @@
 {
-  "version": "1.9.3",
-  "title": "Subagent doc footers fixed",
-  "description": "Sessions footers now correctly bind to the conversation that initiated the work, not the subagent that performed the write."
+  "version": "1.9.4",
+  "title": "Sharper inbox provenance",
+  "description": "Inbox writes now defer to the signals drafting doc, so the source field captures who said it instead of just the conversation channel."
 }

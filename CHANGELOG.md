@@ -52,6 +52,12 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.9.4: Sharper inbox provenance (2026-04-29)
+
+The inbox flush template in `SKILL.md` previously hardcoded `source: consult conversation` in its example frontmatter, which contradicted the `signals.md` drafting principle that provenance names the human source, not the channel. The agent followed the SKILL.md template at flush time and ignored the drafting principle, so inbox files captured the conversation as their "source" and lost track of who actually said the thing being recorded. The fix replaces the per-field enumeration with a pointer: "Frontmatter per `references/docs/engine/signals.md`." The drafting doc owns the field meanings; the SKILL.md flush bullet stops contradicting them. No new gate, no checklist, no procedural ritual. The principle runs silently the way drafting docs are meant to. No protocol shape change.
+
+---
+
 ## v1.9.3: Subagent doc footers fixed (2026-04-29)
 
 Sessions footers written by a subagent now point to the parent conversation's session ID, not the subagent's own. Subagents create their own jsonl files alongside the parent's transcript in `~/.claude/projects/<slug>/`, so resolving the ID inside a subagent (via `session-id.sh`'s most-recent-mtime heuristic) picks the subagent's transcript and silently breaks `claude -r` resumability for the footer. The fix shifts session-ID resolution to the parent: before spawning a subagent that will write a doc, the main conversation runs `session-id.sh` once and passes the result into the subagent's prompt, with explicit instruction to use it verbatim and not run the script. The Subagent contract is canonical in `SKILL.md` "Doc Conventions → Session Footer" and reflected in the spawn flows for `references/modules/onboarding.md`, `references/modules/triage.md`, and `references/modules/maintenance.md`. No protocol shape change.

@@ -268,7 +268,7 @@ The product inbox captures unapplied product thinking: threads explored in conve
 **One flush is one Write.** The Write:
 
 1. Filename: `{product-osis-path}/inbox/{YYYY-MM-DD}--{slug}.md`. Slug names the dominant unapplied thread.
-2. Frontmatter: `type`, `date`, `source: consult conversation`, one-line `summary`.
+2. Frontmatter per `references/docs/engine/signals.md`.
 3. Body: the unapplied threads, raw and verbatim. Do not curate into final-doc form.
 4. Sessions footer (per Doc Conventions).
 5. Append the new path to the product's `osis.json` `files.inbox` array.
@@ -544,6 +544,7 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 
 ## Sessions
 
+- 2026-04-29 — v1.9.4 replaced the inbox flush bullet's hardcoded `source: consult conversation` example with a pointer to `references/docs/engine/signals.md`. Removed the contradiction where the SKILL.md template overrode the drafting principle that source names the human, not the channel. · `claude -r f76118ad-e5f9-43fb-bf92-0d543e659082`
 - 2026-04-29: v1.9.2 added Inbox Signal Buffering (mirrors Session Log Buffering: open threads that did not land in a typed-doc edit flush to the product inbox at lulls or explicit cues; bundled with DAG to recover from a malformed v1.9.0, v1.9.1 skipped). v1.9.3 added the Subagent contract under Doc Conventions: parent resolves the session ID before spawning a subagent that will write a doc and passes it into the prompt verbatim, so footers bind to the conversation that initiated the work instead of the subagent's own transcript. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
 - 2026-04-26 — v1.8.1 buffered session log (preflight removed, per-mode strong-moment language updated); v1.8.2 reframed structural changes as `### Shape` with past-tense verbs (later superseded); v1.8.3 settled on `### Log` (past-tense, comprehensive file changes) + `### Migration` (imperative, tiny user-repo subset), dropped `### Skill Changes` section · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
 - 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`
