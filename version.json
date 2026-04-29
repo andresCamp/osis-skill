@@ -1,5 +1,5 @@
 {
-  "version": "1.9.2",
-  "title": "Inbox captures unapplied threads",
-  "description": "Open product threads that don't make it into a doc now get captured as signal in the product inbox automatically."
+  "version": "1.9.3",
+  "title": "Subagent doc footers fixed",
+  "description": "Sessions footers now correctly bind to the conversation that initiated the work, not the subagent that performed the write."
 }

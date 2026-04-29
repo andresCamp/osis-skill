@@ -72,7 +72,7 @@ Triggered by user intent: "triage," "let's go through the inbox," "what's in the
 ### Flow
 
 1. **Load the inbox.** Read `osis.json` inbox array. If empty, tell the user there's nothing to triage and stop.
-2. **Spawn foreground subagent** with description `Triaging the inbox`. The subagent:
+2. **Spawn foreground subagent** with description `Triaging the inbox`. Before spawning, the main conversation runs `bash {SKILL_PATH}/scripts/session-id.sh` and passes the result into the subagent prompt as the parent session ID; the subagent uses it verbatim in any Sessions footer it writes and must not run `session-id.sh` itself. If the script exits non-zero, omit the value and the subagent skips footer writes for this pass. The subagent:
    - reads every inbox item
    - reads the relevant product docs via the `osis.json` files manifest for context
    - analyzes holistically, not FIFO
@@ -152,4 +152,5 @@ Either way, update the `osis.json` inbox array on write.
 
 ## Sessions
 
+- 2026-04-29 — Triage subagent spawn now requires the parent to resolve the session ID first and pass it into the prompt, so footers from triage writes bind to the conversation that initiated the work. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
 - 2026-04-23 — Added Session Log section, triage as strong-moment source on mode entry and completion · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

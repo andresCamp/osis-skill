@@ -410,6 +410,14 @@ The summary is one line, written from the perspective of "what changed in this s
 
 This convention applies to every funnel and engine doc except `osis.json`, `README.md`, and `sessions.md`. The first two are not conversation artifacts. `sessions.md` already embeds session IDs in every entry heading, so a separate footer would double the record.
 
+**Subagent contract.** When the parent delegates a doc write to a subagent, session-ID resolution shifts to the parent.
+
+1. Before spawning, the parent runs `bash {SKILL_PATH}/scripts/session-id.sh` and captures the result.
+2. The parent passes the resolved ID into the subagent's prompt with explicit instruction: use this session ID verbatim in the Sessions footer; do not run `session-id.sh` yourself.
+3. If the parent could not resolve a session ID, the subagent skips the footer for this write.
+
+The footer is provenance for the conversation that initiated the work. Subagent transcripts get their own jsonl files alongside the parent's, so resolving the ID inside a subagent picks the subagent's transcript and silently breaks `claude -r` resumability.
+
 ### Session Log
 
 `osis/sessions.md` is the session thread log. It sits at a different altitude from the per-doc Session Footer, and both are kept. The footer is per-doc provenance: which sessions touched this specific doc. The log is per-session thread: what this conversation was about, which product areas it touched, whether it closed, and the strong moments inside it.
@@ -536,6 +544,6 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 
 ## Sessions
 
-- 2026-04-29: Added Inbox Signal Buffering section mirroring Session Log Buffering. Open threads that did not land in a typed-doc edit flush to the product inbox at lulls or explicit cues. Bundled into v1.9.2 with DAG to recover from a malformed v1.9.0 release; v1.9.1 skipped intentionally so stranded broken-v1.9.0 installs (which carry v1.9.1 metadata) auto-reconcile via the upgrade prompt. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
+- 2026-04-29: v1.9.2 added Inbox Signal Buffering (mirrors Session Log Buffering: open threads that did not land in a typed-doc edit flush to the product inbox at lulls or explicit cues; bundled with DAG to recover from a malformed v1.9.0, v1.9.1 skipped). v1.9.3 added the Subagent contract under Doc Conventions: parent resolves the session ID before spawning a subagent that will write a doc and passes it into the prompt verbatim, so footers bind to the conversation that initiated the work instead of the subagent's own transcript. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
 - 2026-04-26 — v1.8.1 buffered session log (preflight removed, per-mode strong-moment language updated); v1.8.2 reframed structural changes as `### Shape` with past-tense verbs (later superseded); v1.8.3 settled on `### Log` (past-tense, comprehensive file changes) + `### Migration` (imperative, tiny user-repo subset), dropped `### Skill Changes` section · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
 - 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

@@ -66,6 +66,7 @@ When spawning, use these exact values:
 - **description:** `Getting to know your product`
 - **product version arg for onboard.sh:** always `v1` for fresh product scaffolds. Never pass the skill version.
 - **org scaffold arg for onboard.sh:** when the scan reveals monorepo structure, use `--org {inferred_org_name}` for the root scaffold.
+- **parent session ID:** before spawning, the main conversation runs `bash ${CLAUDE_SKILL_DIR}/scripts/session-id.sh` and passes the result into the subagent prompt. The subagent uses it verbatim in any Sessions footer it writes; the subagent must not run `session-id.sh` itself. If the script exits non-zero, omit the value and the subagent skips the footer.
 
 **File-handling rules for the subagent:**
 - `onboard.sh` creates the minimum Osis root. When the subagent needs to overwrite any of those files, read first then write, or use Edit to replace specific sections. Calling Write on an existing file fails with "File has not been read yet."
@@ -316,4 +317,5 @@ For monorepos, the subagent writes the root `osis/twin.md` with a repo-level pro
 
 ## Sessions
 
+- 2026-04-29 — Subagent-spawn block now includes a parent session ID arg so the onboarding subagent's footers bind to the conversation that initiated the work. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
 - 2026-04-23 — Added sessions.md to always-scaffolded set, documented preflight suppression during onboarding · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

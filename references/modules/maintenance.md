@@ -24,7 +24,7 @@ Every maintenance mode obeys these rules. They are the cost of keeping the syste
 
 **File-handling.** `onboard.sh` created placeholder files during onboarding. When a maintenance subagent needs to overwrite any existing file, it must read first, then write, or use Edit for targeted replacements. Calling Write on an unread file fails with "File has not been read yet."
 
-**Session footer.** After any doc write, update the Sessions footer per SKILL.md "Doc Conventions." Skip silently if `bash {SKILL_PATH}/scripts/session-id.sh` exits non-zero.
+**Session footer.** After any doc write, update the Sessions footer per SKILL.md "Doc Conventions." When a subagent performs the write, the parent resolves the session ID first via `bash {SKILL_PATH}/scripts/session-id.sh` and passes it into the subagent prompt verbatim; the subagent uses it in the footer and does not run the script itself. Skip silently if the script exits non-zero.
 
 **osis.json sync.** Any maintenance mode that creates or deletes docs must update the `files` manifest in `osis.json`. Twin additionally updates `lastTwinUpdate` to the current date.
 
@@ -179,4 +179,5 @@ Update exists because implementation reveals truth that specification could not 
 
 ## Sessions
 
+- 2026-04-29 — Extended the shared-contract Session footer rule: when a subagent performs the write, the parent resolves the session ID and passes it into the prompt verbatim, so the footer binds to the conversation that initiated the work. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
 - 2026-04-23 — Added shared-contract session-log rule; Twin, Analyze, Update as strong-moment sources on entry and completion · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

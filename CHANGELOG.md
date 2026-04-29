@@ -52,6 +52,10 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.9.3: Subagent doc footers fixed (2026-04-29)
+
+Sessions footers written by a subagent now point to the parent conversation's session ID, not the subagent's own. Subagents create their own jsonl files alongside the parent's transcript in `~/.claude/projects/<slug>/`, so resolving the ID inside a subagent (via `session-id.sh`'s most-recent-mtime heuristic) picks the subagent's transcript and silently breaks `claude -r` resumability for the footer. The fix shifts session-ID resolution to the parent: before spawning a subagent that will write a doc, the main conversation runs `session-id.sh` once and passes the result into the subagent's prompt, with explicit instruction to use it verbatim and not run the script. The Subagent contract is canonical in `SKILL.md` "Doc Conventions → Session Footer" and reflected in the spawn flows for `references/modules/onboarding.md`, `references/modules/triage.md`, and `references/modules/maintenance.md`. No protocol shape change.
+
 ## v1.9.2: Inbox captures unapplied threads (2026-04-29)
 
 Inbox writes now follow the same buffered pattern that session-log writes already do. Open product threads (pre-write structure, framings tested and parked, deferred items, tradeoffs surfaced without resolution) are tracked silently in working context across the conversation and flushed to the product inbox at the same lulls and capture cues that flush sessions.md: a major doc write landing, a topic pivot, conversational acks like "ok / thanks / good for now," or explicit cues like "log this / save this / checkpoint." One flush is one inbox file with frontmatter, raw body, and a Sessions footer; the manifest stays in sync. Content rule: only flush threads that did NOT land in a typed-doc edit this session. Applied thinking already lives in the doc; the inbox captures the open ends so they survive compaction. Typed-doc writes still require explicit alignment per "Discuss first. Write when aligned." No protocol shape change.
