@@ -255,6 +255,38 @@ After a flush, clear the working buffer. New moments accumulate from there until
 
 If a session ends without a lull and without a capture cue, accumulated moments are not persisted. This is intentional. Missing beats empty.
 
+## Inbox Signal Buffering
+
+The product inbox captures unapplied product thinking: threads explored in conversation that did not converge into a typed-doc write. Writes to it are buffered in working context and flushed at lulls or on explicit cues, never per turn.
+
+**Track silently.** As conversation accumulates pre-write structure, deferred items, framings tested and parked, and tradeoffs surfaced without resolution, hold them as candidate signal content. Each candidate is a thread that was real enough to consider but did not land in a typed doc this session. Do not write to the inbox after each one.
+
+**Flush on a natural lull.** Same triggers as Session Log Buffering: a major doc write has just landed, the conversation pivots to a new topic, the user signals a pause ("ok," "thanks," "good for now"), or the session is winding down.
+
+**Flush on an explicit capture cue.** "log this," "save this," "checkpoint," "before we move on." When the user uses one, flush everything accumulated since the last flush.
+
+**One flush is one Write.** The Write:
+
+1. Filename: `{product-osis-path}/inbox/{YYYY-MM-DD}--{slug}.md`. Slug names the dominant unapplied thread.
+2. Frontmatter: `type`, `date`, `source: consult conversation`, one-line `summary`.
+3. Body: the unapplied threads, raw and verbatim. Do not curate into final-doc form.
+4. Sessions footer (per Doc Conventions).
+5. Append the new path to the product's `osis.json` `files.inbox` array.
+
+After a flush, clear the working buffer. New threads accumulate from there until the next lull or cue.
+
+**Content rule:** only flush threads that did NOT land in a typed-doc edit this session. Applied thinking already lives in the doc. The inbox captures the open ends so they survive compaction.
+
+**Scope routing:** product-scoped consults flush to that product's inbox. Cross-product or org-level consults flush to the root `osis/inbox/`.
+
+**Doesn't replace alignment for typed docs.** Typed-doc writes still require explicit alignment per "Discuss first. Write when aligned." The inbox is signal capture, not commitment.
+
+**Never narrate.** No "logging this," no "writing to inbox," no preamble, no postscript. The Write happens, the conversation moves on.
+
+**Skip during onboarding.** While `osis.json` does not yet exist, all inbox buffering is suppressed.
+
+If a session ends without a lull and without a capture cue, accumulated content is not persisted. This is intentional. The session-log entry references the open threads even if the inbox flush did not fire.
+
 ## Modes
 
 ### Mode Detection
@@ -417,7 +449,7 @@ osis/
   sessions.md                         ← root (engine: product-thinking thread log, always)
   inbox/                              ← root (engine: pre-triage signals, always)
     {date}--{slug}.md
-  {version}/                          ← e.g. v0/, v1/
+  {version}/                          ← e.g. mvp/, v1/, v2/
     thesis.md                         ← version (hypothesis, earned)
     strategy.md                       ← version (allocation, earned)
     changelog.md                      ← version (engine: decision record, always)
@@ -442,7 +474,7 @@ osis/
   "protocolShape": "1.0",
   "type": "product",
   "product": null,
-  "activeVersion": "v1",
+  "activeVersion": "mvp",
   "anonId": "uuid-v4-string",
   "createdAt": "2026-04-15T00:00:00Z",
   "lastTwinUpdate": null,
@@ -450,8 +482,8 @@ osis/
     "twin": "osis/twin.md",
     "sessions": "osis/sessions.md",
     "inbox": [],
-    "v1": {
-      "changelog": "osis/v1/changelog.md",
+    "mvp": {
+      "changelog": "osis/mvp/changelog.md",
       "systems": {
         "core": {}
       }
@@ -504,5 +536,6 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 
 ## Sessions
 
+- 2026-04-29: Added Inbox Signal Buffering section mirroring Session Log Buffering. Open threads that did not land in a typed-doc edit flush to the product inbox at lulls or explicit cues. Bundled into v1.9.2 with DAG to recover from a malformed v1.9.0 release; v1.9.1 skipped intentionally so stranded broken-v1.9.0 installs (which carry v1.9.1 metadata) auto-reconcile via the upgrade prompt. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
 - 2026-04-26 — v1.8.1 buffered session log (preflight removed, per-mode strong-moment language updated); v1.8.2 reframed structural changes as `### Shape` with past-tense verbs (later superseded); v1.8.3 settled on `### Log` (past-tense, comprehensive file changes) + `### Migration` (imperative, tiny user-repo subset), dropped `### Skill Changes` section · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
 - 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

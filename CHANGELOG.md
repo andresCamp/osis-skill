@@ -52,9 +52,11 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
-## v1.9.1: Inbox captures unapplied threads (2026-04-28)
+## v1.9.2: Inbox captures unapplied threads (2026-04-29)
 
 Inbox writes now follow the same buffered pattern that session-log writes already do. Open product threads (pre-write structure, framings tested and parked, deferred items, tradeoffs surfaced without resolution) are tracked silently in working context across the conversation and flushed to the product inbox at the same lulls and capture cues that flush sessions.md: a major doc write landing, a topic pivot, conversational acks like "ok / thanks / good for now," or explicit cues like "log this / save this / checkpoint." One flush is one inbox file with frontmatter, raw body, and a Sessions footer; the manifest stays in sync. Content rule: only flush threads that did NOT land in a typed-doc edit this session. Applied thinking already lives in the doc; the inbox captures the open ends so they survive compaction. Typed-doc writes still require explicit alignment per "Discuss first. Write when aligned." No protocol shape change.
+
+v1.9.1 is intentionally skipped. A parallel-write race during the v1.9.0 release shipped a tag with v1.9.1 metadata under v1.9.0 release notes (DAG content) but without the Inbox feature in `SKILL.md`. Bundling Inbox under v1.9.2 lets stranded broken-v1.9.0 installs auto-reconcile via the upgrade prompt: local 1.9.1 is less than remote 1.9.2, so the prompt fires; local 1.9.1 equal to remote 1.9.1 would have stayed silent.
 
 ---
 
