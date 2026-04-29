@@ -52,9 +52,26 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.9.1: Inbox captures unapplied threads (2026-04-28)
+
+Inbox writes now follow the same buffered pattern that session-log writes already do. Open product threads (pre-write structure, framings tested and parked, deferred items, tradeoffs surfaced without resolution) are tracked silently in working context across the conversation and flushed to the product inbox at the same lulls and capture cues that flush sessions.md: a major doc write landing, a topic pivot, conversational acks like "ok / thanks / good for now," or explicit cues like "log this / save this / checkpoint." One flush is one inbox file with frontmatter, raw body, and a Sessions footer; the manifest stays in sync. Content rule: only flush threads that did NOT land in a typed-doc edit this session. Applied thinking already lives in the doc; the inbox captures the open ends so they survive compaction. Typed-doc writes still require explicit alignment per "Discuss first. Write when aligned." No protocol shape change.
+
+---
+
+## v1.9.0: Phases run as a DAG (2026-04-28)
+
+The protocol gets a new Key Decision and the brief drafting doc gets a new format spec: iteration phases form a DAG, not a sequence. Each phase entry's heading carries its kebab-case slug, and a YAML codeblock under the heading declares `depends_on: [<sibling-slug>, ...]`. The agent parses these declarations to compute execution order, detect cycles, and identify parallelizable siblings: phases with no dependency between them execute concurrently, and the iteration lands when every phase node has merged. This unblocks parallel agent execution and makes the actual structure of iteration work visible at the brief altitude. The brief template's Phases section migrates from a markdown table to per-phase sections with embedded YAML codeblocks. No protocol shape change. Surrounding Phases principles in `brief.md` are also reworded surgically to align with the new framing: `shipped` becomes `merged`, ordering is scoped to siblings, and cut-line semantics shift from per-phase shipping to per-phase merging.
+
+### Log
+
+- Reshaped: `references/protocol.md`
+- Reshaped: `references/docs/funnel/brief.md`
+
+---
+
 ## v1.8.4: Tighter iteration and phase rules (2026-04-28)
 
-Two drafting principles get added to the `brief.md` reference and folded into the `Phase and iteration are not the same` Key Decision in the protocol. First, iteration boundaries split when the bet itself diverges, not when the surface count grows; multiple roles, surfaces, or sub-systems sharing auth, schema, or product identity are phases of one iteration. Second, phases are vertical slices, not horizontal layers; each phase ships a narrow working product on its own. Together these prevent two adjacent failure modes: over-splitting one bet into multiple iterations because surfaces differ, and chunking phases into auth/schema/UI layers that nobody can ship in isolation. No protocol shape change.
+Two drafting principles get added to the `brief.md` reference and folded into the `Phase and iteration are not the same` Key Decision in the protocol. First, iteration boundaries split when the bet itself diverges, not when the surface count grows; multiple roles, surfaces, or sub-systems sharing auth, schema, or product identity are phases of one iteration. Second, a phase is atomic and reviewable in isolation: an agent lands it in a single focused pass, the trunk stays green at the merge point, and nothing inside the phase depends on a future phase to function. Together these prevent two adjacent failure modes: over-splitting one bet into multiple iterations because surfaces differ, and chunking phases into half-built layers that leave the trunk red. No protocol shape change.
 
 ### Log
 

@@ -59,12 +59,14 @@ Principles:
 ### Phases
 
 Principles:
-- A phase is a slice that can be shipped, observed, and reasoned about on its own.
-- Phases are ordered by what they teach, not by what is easiest to build first.
+- A phase is a slice that can be merged, observed, and reasoned about on its own.
+- Sibling phases are ordered by what they teach, not by what is easiest to build first.
 - Each phase carries its own smallest viable test of the bet; a phase that cannot fail teaches nothing.
-- Phase boundaries are cut-lines: the work after a phase must be droppable without invalidating what shipped before it.
+- Phase boundaries are cut-lines: unmerged phases must be droppable without invalidating what already merged.
 - A bet may have multiple surfaces. Multiple roles, surfaces, or sub-systems on shared infrastructure (auth, schema, product identity) are phases of one iteration, not separate iterations. The bet is unitary when both halves are needed to validate it; splitting iterations on surface count fragments the test.
-- A phase is a vertical slice, not a horizontal layer. If the phase reads as "the auth layer" or "the schema" rather than "a narrow working product," re-cut. Each phase carries enough surface to be observed by a real user (or operator) on its own.
+- A phase is a unit composing into the iteration: atomic, reviewable in isolation, landed in one focused pass. The trunk stays green at the phase boundary; nothing inside the phase depends on a future phase to function. The iteration is what ships; the phase is what merges.
+- Phases form a DAG composing into the iteration. Each phase entry begins with a heading carrying the phase slug (kebab-case, matching `{slug}.impl.md`) followed by a YAML codeblock declaring `depends_on: [<sibling-slug>, ...]`. Root phases declare `depends_on: []`. These blocks are the canonical DAG; the agent parses them to compute execution order, detect cycles, and identify parallelizable siblings.
+- Phases with no dependency between them are siblings and may execute concurrently. The iteration lands when every phase node has merged.
 
 ### Success Criteria
 
@@ -112,9 +114,13 @@ Explicit. What we're leaving alone.
 
 ## Phases
 
-| Phase | Scope | Depends On |
-|---|---|---|
-| [name] | [what ships] | [prereq] |
+### [phase-slug]
+
+```yaml
+depends_on: []
+```
+
+[what this phase ships and how it tests the bet]
 
 ## Success Criteria
 
@@ -133,4 +139,6 @@ Explicit. What we're leaving alone.
 
 ## Sessions
 
+- 2026-04-28 — Added "Phases form a DAG, not a sequence" Key Decision and YAML-codeblock `depends_on` declaration format; surgically reworded surrounding Phases principles to align (shipped to merged, ordering scoped to siblings, cut-lines reframed to merged subsets) · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
+- 2026-04-28 — Reworded phase rules from "narrow working product on its own" to "atomic, reviewable in isolation, trunk-green at merge"; SWE-canonical framing per trunk-based-development and stacked-diff doctrine · `claude -r 7e8770e6-5469-40df-977e-0cacf4de1864`
 - 2026-04-28 — Added bet-divergence principle (multiple surfaces on shared infrastructure are phases, not iterations) and vertical-slice principle (phases ship as narrow working products, not horizontal layers) to the Phases section · `claude -r 3d474847-90d6-4b05-9200-795b96b6f325`

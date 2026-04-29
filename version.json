@@ -1,5 +1,5 @@
 {
-  "version": "1.8.4",
-  "title": "Tighter iteration and phase rules",
-  "description": "Iteration boundaries split on bet divergence, not surface count. Phases are vertical slices, each shippable on its own."
+  "version": "1.9.1",
+  "title": "Inbox captures unapplied threads",
+  "description": "Open product threads that don't make it into a doc now get captured as signal in the product inbox automatically."
 }

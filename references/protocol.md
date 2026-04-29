@@ -434,7 +434,10 @@ These are typed reasoning artifacts, not generic docs. Each doc answers one ques
 ## Key Decisions
 
 **Phase and iteration are not the same.**
-Iteration = product direction (the bet). Phase = unit of work (the execution slice). Iteration boundaries split when the bet itself diverges, not when surface count grows: multiple roles, surfaces, or sub-systems sharing auth, schema, or product identity are phases of one iteration. Phases are vertical slices, not horizontal layers: each phase ships a narrow working product on its own; if a phase reads as "the auth layer" or "the schema," re-cut.
+Iteration = the release (the bet that ships). Phase = a unit composing into the iteration. Iteration boundaries split when the bet itself diverges, not when surface count grows: multiple roles, surfaces, or sub-systems sharing auth, schema, or product identity are phases of one iteration. A phase is atomic and reviewable in isolation: an agent lands it in a single focused pass, the trunk stays green at the merge point, and nothing inside the phase depends on a future phase to function.
+
+**Phases form a DAG, not a sequence.**
+Each phase entry declares its dependencies in a YAML codeblock under its heading. The agent parses these declarations to compute execution order, detect cycles, and identify parallelizable siblings. The iteration lands when every phase node has merged.
 
 **No separate roadmap.** The structure is the roadmap.
 
@@ -479,5 +482,7 @@ Iteration = product direction (the bet). Phase = unit of work (the execution sli
 
 ## Sessions
 
+- 2026-04-28 — Added "Phases form a DAG, not a sequence" Key Decision and YAML-codeblock `depends_on` declaration format to brief drafting docs and template; SWE-canonical pattern matching Docker Compose / GHA / Bazel · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
+- 2026-04-28 — Reworded phase rules from "narrow working product on its own" to "atomic, reviewable in isolation, trunk-green at merge"; SWE-canonical framing per trunk-based-development and stacked-diff doctrine · `claude -r 7e8770e6-5469-40df-977e-0cacf4de1864`
 - 2026-04-28 — Sharpened the `Phase and iteration are not the same` Key Decision: iteration boundaries split on bet divergence (not surface count); phases are vertical slices, not horizontal layers · `claude -r 3d474847-90d6-4b05-9200-795b96b6f325`
 - 2026-04-23 — Added sessions.md as root-level engine doc, introduced fourth cut (thinking in motion), bumped protocol to v2.0.0 · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`
