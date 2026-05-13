@@ -55,6 +55,16 @@ Principles:
 - Adjacent surfaces will pull scope toward themselves; stating their exclusion is what holds the line.
 - What doesn't change marks the edges of the bet; without edges, success and failure blur.
 - Preserving something on purpose is different from ignoring it; the distinction must be explicit.
+- What Doesn't Change names world-facing exclusions: surfaces, behaviors, and code paths the iteration deliberately leaves untouched. Intra-iteration build conventions belong in Shared Decisions, not here.
+
+### Shared Decisions
+
+Principles:
+- Shared Decisions are cross-cutting commitments scoped to how this iteration is built: stack picks, transport choices, naming conventions, third-party library locks, integration patterns that bind across sibling specs.
+- Distinguish by altitude. What Doesn't Change names world-facing exclusions; Shared Decisions name intra-iteration build commitments; per-spec Decisions in impl.md name single-spec local choices.
+- One-liner per entry; rationale follows only when load-bearing. The brief is the wrong altitude for full ADR triples.
+- Append-only within an iteration. A decision that flips mid-iteration rides upward propagation, it does not get overwritten silently.
+- Atomic specs read Shared Decisions to inherit iteration-wide context without repeating it or hunting across siblings.
 
 ### Phases
 
@@ -65,8 +75,9 @@ Principles:
 - Phase boundaries are cut-lines: unmerged phases must be droppable without invalidating what already merged.
 - A bet may have multiple surfaces. Multiple roles, surfaces, or sub-systems on shared infrastructure (auth, schema, product identity) are phases of one iteration, not separate iterations. The bet is unitary when both halves are needed to validate it; splitting iterations on surface count fragments the test.
 - A phase is a unit composing into the iteration: atomic, reviewable in isolation, landed in one focused pass. The trunk stays green at the phase boundary; nothing inside the phase depends on a future phase to function. The iteration is what ships; the phase is what merges.
-- Phases form a DAG composing into the iteration. Each phase entry begins with a heading carrying the phase slug (kebab-case, matching `{slug}.impl.md`) followed by a YAML codeblock declaring `depends_on: [<sibling-slug>, ...]`. Root phases declare `depends_on: []`. These blocks are the canonical DAG; the agent parses them to compute execution order, detect cycles, and identify parallelizable siblings.
-- Phases with no dependency between them are siblings and may execute concurrently. The iteration lands when every phase node has merged.
+- Phases form a DAG composing into the iteration. The `## Phases` section opens with a Phases table that is the single source of truth for the DAG. Columns: `Spec | Name | Depends on | Status`. The `Spec` column carries the kebab-case spec id matching `{spec-id}.impl.md` (`NN-name` for solo, `NNa-name / NNb-name / NNc-name` for grouped sub-specs sharing a phase number). `Depends on` is a comma-separated list of sibling spec ids; root specs use `—`. `Status` tracks `not started / in progress / done` per spec. The agent parses this table to compute execution order, detect cycles, and identify parallelizable siblings.
+- One spec per row, one row per spec. The table is canonical; per-spec impl headers cross-reference the table via `**Depends on:**`. Drift between the two is the failure mode the Build mode close ritual prevents.
+- Phases with no dependency between them are siblings and may execute concurrently. The iteration lands when every spec row reads `done`.
 
 ### Success Criteria
 
@@ -110,17 +121,24 @@ What we're doing about it and why we expect it to work.
 
 ## What Doesn't Change
 
-Explicit. What we're leaving alone.
+Explicit. World-facing exclusions: surfaces, behaviors, code paths the iteration leaves untouched.
+
+## Shared Decisions
+
+Cross-cutting commitments scoped to how this iteration is built. One line each.
+
+- [Topic]: [decision]. [Rationale clause, only when load-bearing.]
 
 ## Phases
 
-### [phase-slug]
+| Spec | Name | Depends on | Status |
+|---|---|---|---|
+| 01-name | Short name | — | not started |
+| 02a-name | Short name | 01-name | not started |
+| 02b-name | Short name | 01-name | not started |
+| 03-name | Short name | 02a-name, 02b-name | not started |
 
-```yaml
-depends_on: []
-```
-
-[what this phase ships and how it tests the bet]
+Optional narrative paragraph after the table when framing context matters (cut-line dates, demo cohort, shipped-vs-deferred splits).
 
 ## Success Criteria
 
@@ -133,12 +151,7 @@ depends_on: []
 
 - Optional sections: Appetite, Loop changes.
 - The first brief is often just the current live bet captured cleanly. It does not need to be novel to be worth writing down.
+- The Phases table is the iteration's DAG. Per-spec impl headers cross-reference back to it via `**Depends on:**`. Build mode walks the table on every spec open; the close ritual writes the row Status back in sync with the impl header.
+- Atomic spec convention: each spec is one session-executable work unit. Naming `NN-name.impl.md` solo, `NNa/NNb/NNc-name.impl.md` grouped sub-specs sharing a phase number. Spec id matches the table's `Spec` column.
 
 
----
-
-## Sessions
-
-- 2026-04-28 — Added "Phases form a DAG, not a sequence" Key Decision and YAML-codeblock `depends_on` declaration format; surgically reworded surrounding Phases principles to align (shipped to merged, ordering scoped to siblings, cut-lines reframed to merged subsets) · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
-- 2026-04-28 — Reworded phase rules from "narrow working product on its own" to "atomic, reviewable in isolation, trunk-green at merge"; SWE-canonical framing per trunk-based-development and stacked-diff doctrine · `claude -r 7e8770e6-5469-40df-977e-0cacf4de1864`
-- 2026-04-28 — Added bet-divergence principle (multiple surfaces on shared infrastructure are phases, not iterations) and vertical-slice principle (phases ship as narrow working products, not horizontal layers) to the Phases section · `claude -r 3d474847-90d6-4b05-9200-795b96b6f325`

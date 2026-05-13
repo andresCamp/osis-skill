@@ -113,11 +113,14 @@ For automated recurring drift scans (Claude Code `/loop`, Codex cron, or equival
 ```
 Read osis/osis.json to identify the active version and file manifest.
 
-For each implementation doc ({phase}.impl.md), compare:
+For each implementation doc ({spec-id}.impl.md), compare:
+  - User-facing behavior claims against actual UX in the running app
   - Data model claims against schema files
   - API surface claims against actual route/procedure definitions
   - Dependency claims against package.json / imports
   - Engineering Notes against recent git log (last 2 weeks)
+  - **Status** header against the parent brief's Phases-table Status
+    column for the same Spec id; drift between them is a flag
 
 For each product doc (core/product.md or {system}/product.md), compare:
   - Documented flows against actual user-facing behavior
@@ -125,8 +128,11 @@ For each product doc (core/product.md or {system}/product.md), compare:
   - Core concepts against actual naming in the codebase
 
 For each iteration brief (brief.md), check:
-  - Phases listed have corresponding impl docs
+  - Every row in the Phases table has a corresponding {spec-id}.impl.md
+  - Phases-table Status column matches each impl's Status header
+  - Phases-table Depends-on entries reference valid sibling Spec ids
   - "What Changes" items are reflected in the codebase
+  - Shared Decisions entries are reflected in the actual implementation
 
 Do NOT scan manifesto.md, thesis.md, strategy.md, brand.md, or
 design-system.md. These are human-owned reasoning docs that
@@ -175,9 +181,3 @@ Examples:
 
 Update exists because implementation reveals truth that specification could not anticipate. When that happens, push the truth up, not just across. A brief that learns something the thesis assumed away must change the thesis, or the brief is lying to itself.
 
----
-
-## Sessions
-
-- 2026-04-29 — Extended the shared-contract Session footer rule: when a subagent performs the write, the parent resolves the session ID and passes it into the prompt verbatim, so the footer binds to the conversation that initiated the work. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
-- 2026-04-23 — Added shared-contract session-log rule; Twin, Analyze, Update as strong-moment sources on entry and completion · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

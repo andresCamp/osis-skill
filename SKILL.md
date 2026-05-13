@@ -287,6 +287,18 @@ After a flush, clear the working buffer. New threads accumulate from there until
 
 If a session ends without a lull and without a capture cue, accumulated content is not persisted. This is intentional. The session-log entry references the open threads even if the inbox flush did not fire.
 
+## Memory Boundaries
+
+Two persistence layers run alongside the osis tree: Claude Code's per-user `MEMORY.md` (single machine, single Claude install, never shared) and the osis docs in the repo (versioned, travels with the code, reaches every collaborator, agent, and surface). Each owns a different kind of knowledge.
+
+**Osis owns shared knowledge.** Product facts, operating principles, project state, team-level constraints, ICP and positioning, brand and voice; anything a cofounder, a hosted agent, a future contributor, or any non-skill surface (web, native, cloud agent) would need to operate on this product. Route product signal into the matching osis doc, never into `MEMORY.md`. If the right osis doc does not exist yet, surface it in the consult conversation and create it on alignment, the same way any other shared decision lands.
+
+**`MEMORY.md` owns personal interaction style.** Writing preferences, this user's individual collaboration habits with Claude, machine-local context, per-session affordances. Not load-bearing for anyone other than this user in this session.
+
+**Routing test.** Would this knowledge matter to someone other than this user in this session, or to a non-skill surface (web, native, cloud agent)? If yes, osis. If no, memory. When uncertain, ask in conversation rather than guess.
+
+This boundary is what makes osis the source of truth for the product. Without it, product context leaks into single-tenant memory and never reaches the cloud, the cofounder, or the hosted agents that need it. Per-user memory routing rules in the underlying agent's auto-memory layer do not override this boundary while osis is active.
+
 ## Modes
 
 ### Mode Detection
@@ -350,7 +362,7 @@ The primary mode. User has a signal.
 4. Check for conflicts — contradicts existing docs? Surface tensions.
 5. Propagate — discoveries that invalidate higher-layer assumptions push up immediately.
 6. **Align** — confirm with user.
-7. Write — update docs via subagent (keep chat clean), log to changelog. If files were created or deleted, update the `files` manifest in `osis.json`.
+7. Write — update docs via subagent (keep chat clean), log to changelog. If files were created or deleted, update the `files` manifest in `osis.json`. **Density pass before close:** sweep the consult thread for any product or technical detail of the spec discussed and append everything to the file. Do not filter. The agent's only judgment is whether content is about the spec, never whether it's important enough. The human prunes later; the agent never decides what to leave out. The impl is the only file the build agent reads, and filtered specs were the dominant failure mode this convention prevents.
 
 After writing, store the raw signal to the relevant `{iteration}/signals/` as a **background task** (don't block the conversation).
 
@@ -364,11 +376,19 @@ summary: One-line summary of what was observed.
 [Raw content. Do not interpret here. Raw only.]
 ```
 
-**When a signal warrants a new iteration:** If the signal represents a new product direction (not just a tweak to an existing iteration), create a new iteration folder with a `brief.md` that captures the signal, insight, and bet. The brief is the commander's orders: what changes, what doesn't, and how the build phases out.
+**When a signal warrants a new iteration:** If the signal represents a new product direction (not just a tweak to an existing iteration), create a new iteration folder with a `brief.md` that captures the signal, insight, and bet. The brief is the commander's orders: what changes, what doesn't, the shared decisions binding the iteration, and the Phases table mapping atomic specs and their DAG. Once the Phases table exists, individual spec execution is Build mode's territory, not Consult.
 
 **When ambiguity is hurting output quality:** force the missing constraint into existence through conversation. This is how the funnel thickens over time.
 
 **Session log:** Each doc write and each aligned inline decision is a candidate bullet for the session-log buffer. See [Session Log Buffering](#session-log-buffering) for flush behavior.
+
+### Build
+
+Brackets plan mode. Build owns the DAG check and context load on the way in, and the status update, changelog entry, upward propagation, and session footers on the way out. Plan mode stays sovereign for code authoring in the middle.
+
+This logic is progressive-disclosure by design. When the user triggers Build (says "build {spec}", "let's work on {spec-id}", "start {phase}", "open {NN-name}", or equivalent), read [references/modules/build.md](references/modules/build.md) and follow the playbook there. Do not load it during routine consults, triage, or maintenance.
+
+**Session log:** Build entry and completion are candidate bullets for the session-log buffer. See [Session Log Buffering](#session-log-buffering) for flush behavior.
 
 ### Update, Analyze, Twin (Maintenance)
 
@@ -408,7 +428,9 @@ Every osis doc carries a Sessions footer that tracks which agent sessions built 
 
 The summary is one line, written from the perspective of "what changed in this session" — concrete, not philosophical. Examples: *"Added the proximity principle paragraph"*, *"Refined section II based on feedback"*, *"Initial draft from onboarding conversation"*.
 
-This convention applies to every funnel and engine doc except `osis.json`, `README.md`, and `sessions.md`. The first two are not conversation artifacts. `sessions.md` already embeds session IDs in every entry heading, so a separate footer would double the record.
+This convention applies to **user-repo osis docs only** (every funnel and engine doc except `osis.json`, `README.md`, and `sessions.md`). The skill source itself (`SKILL.md`, `references/`, `scripts/`) is not an osis doc; provenance for skill changes lives in `CHANGELOG.md` and the matching `mvp/changelog.md` entry. Adding session footers to skill source would bloat every install's prompt context with maintainer-only provenance, so it never happens.
+
+The first two carve-outs (`osis.json`, `README.md`) are not conversation artifacts. `sessions.md` already embeds session IDs in every entry heading, so a separate footer would double the record.
 
 **Subagent contract.** When the parent delegates a doc write to a subagent, session-ID resolution shifts to the parent.
 
@@ -429,6 +451,8 @@ Write behavior is described in full under [Session Log Buffering](#session-log-b
 ## Behavioral Rules
 
 - **Ask before you write.** Always. The conversation is where the value is.
+- **UX-first impl specs.** Every impl carries two durable typed sections: `## UX` (how it looks and feels) and `## Technology` (how it gets built). UX leads; Technology serves it. Internal structure inside each section is adaptive. See `references/docs/engine/impl.md`.
+- **Don't filter. Capture every detail of the spec discussed.** The impl is the only file the executing agent reads alongside the parent brief and dep specs. The agent's only judgment is whether content is about the spec, never whether it's important enough. The human prunes later; the agent never decides what to leave out. Filtered specs were the dominant failure mode this convention prevents.
 - **Reason from principles silently.** Drafting docs carry per-section principles in `references/docs/funnel/` and the drafting files under `references/docs/engine/`. Twin is the exception: `references/docs/engine/twin.md` is template-only because Twin mode regenerates from code. Load the relevant file, reason from it, never narrate it. Keep observation and inference distinct, do not generalize from a single anecdote as proof, do not invent motives or certainty, prefer mechanism over villain, and do not explain the drafting rubric unless the user explicitly asks. Principles are tools for this builder and this project, not a checklist. Apply the Pareto lens: if the draft has hit the 80/20 point where further polish is diminishing returns, move on. If not, surface the one thing missing, once, then defer. The builder chooses. Options are valid only when they reflect a real, grounded choice (distinct orientations, live tradeoffs with reasoning). Never A/B/C-pick with thin paraphrased variants.
 - **Challenge vague thinking.** "We need better onboarding" is not a signal. "Users drop off after step 2 because X" is. Help the user get specific.
 - **Think in systems.** Every change ripples. Think upstream and downstream.
@@ -436,6 +460,7 @@ Write behavior is described in full under [Session Log Buffering](#session-log-b
 - **Upward propagation.** Discoveries at lower layers that invalidate higher-layer assumptions must be pushed up immediately (phase → iteration → version). Prevents silent drift.
 - **Keep it lean.** The protocol prevents knowledge from escaping the architecture. It is not bureaucracy.
 - **Update the session footer on every doc write** (see Doc Conventions). Skip silently if the session ID can't be resolved.
+- **Route shared knowledge to osis, personal style to `MEMORY.md`.** Product facts, operating principles, project state, and team-level constraints belong in osis docs where they travel with the repo. Personal interaction style stays in the per-user memory layer. See [Memory Boundaries](#memory-boundaries).
 - **Don't be eager.** Not every code change is a product signal. Code bugs don't touch osis unless they reveal a product/UX decision. Standard infrastructure gets documented by the twin update, not by interrupting the developer. Only engage when there's a real product decision to make.
 - **Stay in your lane.** You are the product authority. You don't take over code tasks, debugging, or implementation. You engage when the work touches product intent, UX, behavior, or strategy. If the user is just coding, stay quiet.
 - **No em dashes.** Never use em dashes (—) in any written content. Use commas, periods, colons, or parentheses instead.
@@ -467,13 +492,15 @@ osis/
         brief.md                      ← iteration (experiment, earned)
         signals/                      ← iteration (engine: raw intel)
           {date}--{slug}.md
-        {phase-name}.impl.md          ← phase (execution plan)
+        {NN-name}.impl.md             ← spec (atomic, solo; e.g. 01-shell.impl.md)
+        {NNa-name}.impl.md            ← spec (atomic, grouped sub-spec; e.g. 02a-pty-backend.impl.md)
     {system}/                         ← only when complexity warrants
       product.md                      ← system (subsystem definition)
       {iteration-slug}/
         brief.md
         signals/
-        {phase-name}.impl.md
+        {NN-name}.impl.md
+        {NNa-name}.impl.md
 ```
 
 **osis.json format (initial scaffold):**
@@ -539,13 +566,3 @@ Read osis/twin.md and the active version docs in osis/ before working on any pro
 - Routine git/deploy operations
 - Adding standard infrastructure (auth, payments, email) — the cron handles this
 - Questions about libraries or APIs unrelated to the product
-
----
-
-## Sessions
-
-- 2026-05-06 — Tightened org-mode greeting: products and modules are now surfaced with display name **and path inline**, so the agent has the resolution in working context up front instead of going filesystem-hunting when a user uses a deictic reference like "this app." Added the convention that the slug is the routing key (kebab-case, matches directory basename) and the display name is rendered from the slug with judgment for acronyms. · `claude -r 46ec1763-52c5-4a34-aa7d-80d4cfaf4fc2`
-- 2026-04-29 — v1.9.4 replaced the inbox flush bullet's hardcoded `source: consult conversation` example with a pointer to `references/docs/engine/signals.md`. Removed the contradiction where the SKILL.md template overrode the drafting principle that source names the human, not the channel. · `claude -r f76118ad-e5f9-43fb-bf92-0d543e659082`
-- 2026-04-29: v1.9.2 added Inbox Signal Buffering (mirrors Session Log Buffering: open threads that did not land in a typed-doc edit flush to the product inbox at lulls or explicit cues; bundled with DAG to recover from a malformed v1.9.0, v1.9.1 skipped). v1.9.3 added the Subagent contract under Doc Conventions: parent resolves the session ID before spawning a subagent that will write a doc and passes it into the prompt verbatim, so footers bind to the conversation that initiated the work instead of the subagent's own transcript. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
-- 2026-04-26 — v1.8.1 buffered session log (preflight removed, per-mode strong-moment language updated); v1.8.2 reframed structural changes as `### Shape` with past-tense verbs (later superseded); v1.8.3 settled on `### Log` (past-tense, comprehensive file changes) + `### Migration` (imperative, tiny user-repo subset), dropped `### Skill Changes` section · `claude -r 69e515a6-a109-4b2b-9c3c-42843d1d69a0`
-- 2026-04-23 — Added Session Preflight, sessions.md Doc Conventions entry, per-mode strong-moment behavior, sessions.md in File Structure and scaffold, and `modules` as a first-class concept (routing in org mode detection, module-awareness in product context loading, `modules: {}` in both osis.json templates, scope-agnostic explainer) · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

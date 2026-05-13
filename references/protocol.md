@@ -1,4 +1,4 @@
-# Osis Protocol v2.0.0
+# Osis Protocol v2.1.0
 
 > Working draft. The shape, principles, and decisions for the next protocol.
 
@@ -177,7 +177,7 @@ Each doc is a typed node in a reasoning graph. Edges are the structural relation
 | `core/product.md` | Definition | System (top-level) | What the whole product is — composition, macro flows |
 | `{system}/product.md` | Definition | System | What this subsystem is — internal flow, inputs/outputs |
 | `brief.md` | Experiment | Iteration | Signal, insight, the tactical bet |
-| `{phase}.impl.md` | Execution plan | Phase | Tech decisions → handoff to plan mode |
+| `{spec-id}.impl.md` | Execution plan | Phase | Atomic spec; UX-first, density-enforced; Build mode brackets plan mode |
 
 ### Engine Docs
 
@@ -206,7 +206,7 @@ Entry shape:
 
 Preflight behavior: on the first substantive user turn after the greeting (never during silent activation), the skill resolves the current session ID, checks `sessions.md` for a matching entry, and prepends a stub with `topic/areas: pending` if none exists. The skill never modifies other entries; sibling-session entries are independent threads.
 
-Strong-moment triggers append bullets to the current thread's entry: after a doc write or aligned decision in Consult, on mode entry and completion summary in Triage, on mode entry and scan completion in Twin, Analyze, and Update, and when the user says "log this" or "note this." When a strong moment fires and topic or areas are still `pending`, the skill infers and writes them from current context.
+Strong-moment triggers append bullets to the current thread's entry: after a doc write or aligned decision in Consult, on mode entry and completion summary in Triage, on Build open and close, on mode entry and scan completion in Twin, Analyze, and Update, and when the user says "log this" or "note this." When a strong moment fires and topic or areas are still `pending`, the skill infers and writes them from current context.
 
 Preexisting docs, marketing copy, decks, and notes should be loaded into `osis/inbox/` as signal when they are relevant to onboarding or a clarity session. They inform the conversation, but they do not become canon automatically.
 
@@ -374,7 +374,7 @@ version → system → iteration → phase → build → ship
 2. **System** organizes work surfaces (when warranted).
 3. **Iteration** captures product direction — a bet informed by signal.
 4. **Phase** scopes execution — a logical, testable chunk.
-5. **Build** happens in plan mode. Osis steps back.
+5. **Build** brackets plan mode. Osis opens (DAG check + spec context load), plan mode authors code in the middle, Osis closes (status update + changelog + upward propagation + session footers).
 6. **Signal** comes back. New iteration. Loop continues.
 
 Sometimes you iterate again before you build because new signal arrives mid-direction.
@@ -437,7 +437,16 @@ These are typed reasoning artifacts, not generic docs. Each doc answers one ques
 Iteration = the release (the bet that ships). Phase = a unit composing into the iteration. Iteration boundaries split when the bet itself diverges, not when surface count grows: multiple roles, surfaces, or sub-systems sharing auth, schema, or product identity are phases of one iteration. A phase is atomic and reviewable in isolation: an agent lands it in a single focused pass, the trunk stays green at the merge point, and nothing inside the phase depends on a future phase to function.
 
 **Phases form a DAG, not a sequence.**
-Each phase entry declares its dependencies in a YAML codeblock under its heading. The agent parses these declarations to compute execution order, detect cycles, and identify parallelizable siblings. The iteration lands when every phase node has merged.
+Each iteration brief opens its `## Phases` section with a Phases table declaring the DAG. Columns: `Spec | Name | Depends on | Status`. The `Spec` column carries the kebab-case spec id matching `{spec-id}.impl.md`. `Depends on` names sibling ids (or `—` for roots). `Status` tracks per-spec lifecycle (`not started / in progress / done`). The agent parses this table to compute execution order, detect cycles, and identify parallelizable siblings. The iteration lands when every spec row reads `done`.
+
+**Atomic spec convention.**
+Each impl is one session-executable work unit. Naming: `NN-name.impl.md` for solo specs, `NNa-name.impl.md / NNb-name.impl.md / NNc-name.impl.md` for grouped sub-specs sharing a phase number. Atomic refers to scope, not length; a dense capture of one unit can run 150-300 lines. The impl carries two durable typed sections, `## UX` (how it looks and feels) and `## Technology` (how it gets built), with internal structure adaptive inside each. UX leads; Technology serves it. Engineering Notes is an optional appended section for build-time discoveries. Authoring naturally falls into two passes: product thinking lands UX, then a technical pass against current library and framework documentation lands Technology. The agent does not filter; every detail of the spec discussed enters the file because the impl is the only file the executing agent reads.
+
+**Build mode brackets plan mode.**
+Build owns the open (DAG check + spec context load) and close (status update + changelog + upward propagation + session footers); plan mode stays sovereign for code authoring in the middle. Build does not enter plan mode or author code; it is a wrapper, not a replacement.
+
+**Shared Decisions section.**
+Iteration briefs carry a `## Shared Decisions` section between `## What Doesn't Change` and `## Phases`. It is the canonical home for cross-cutting intra-iteration commitments (stack picks, transport choices, naming conventions). Distinguish by altitude: What Doesn't Change names world-facing exclusions; Shared Decisions name how the iteration is built; per-spec Decisions in impl.md name single-spec local choices.
 
 **No separate roadmap.** The structure is the roadmap.
 
@@ -445,7 +454,7 @@ Each phase entry declares its dependencies in a YAML codeblock under its heading
 
 **No game plan.** Killed. Absorbed by brief (direction) and impl (execution).
 
-**Phase is a flat doc, not a folder.** `{name}.impl.md` with dot separator.
+**Phase is a flat doc, not a folder.** `{spec-id}.impl.md` with dot separator.
 
 **Product identity lives at the product level.** Manifesto → Brand → Design System. A funnel within the funnel.
 
@@ -478,11 +487,3 @@ Each phase entry declares its dependencies in a YAML codeblock under its heading
 - Skill mode definitions for the new protocol shape
 - Framework module implementation details
 
----
-
-## Sessions
-
-- 2026-04-28 — Added "Phases form a DAG, not a sequence" Key Decision and YAML-codeblock `depends_on` declaration format to brief drafting docs and template; SWE-canonical pattern matching Docker Compose / GHA / Bazel · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
-- 2026-04-28 — Reworded phase rules from "narrow working product on its own" to "atomic, reviewable in isolation, trunk-green at merge"; SWE-canonical framing per trunk-based-development and stacked-diff doctrine · `claude -r 7e8770e6-5469-40df-977e-0cacf4de1864`
-- 2026-04-28 — Sharpened the `Phase and iteration are not the same` Key Decision: iteration boundaries split on bet divergence (not surface count); phases are vertical slices, not horizontal layers · `claude -r 3d474847-90d6-4b05-9200-795b96b6f325`
-- 2026-04-23 — Added sessions.md as root-level engine doc, introduced fourth cut (thinking in motion), bumped protocol to v2.0.0 · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

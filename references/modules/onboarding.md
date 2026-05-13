@@ -64,7 +64,7 @@ A single foreground subagent always runs first. It determines topology, detects 
 
 When spawning, use these exact values:
 - **description:** `Getting to know your product`
-- **product version arg for onboard.sh:** always `v1` for fresh product scaffolds. Never pass the skill version.
+- **product version arg for onboard.sh:** always `mvp` for fresh product scaffolds. Never pass the skill version.
 - **org scaffold arg for onboard.sh:** when the scan reveals monorepo structure, use `--org {inferred_org_name}` for the root scaffold.
 - **parent session ID:** before spawning, the main conversation runs `bash ${CLAUDE_SKILL_DIR}/scripts/session-id.sh` and passes the result into the subagent prompt. The subagent uses it verbatim in any Sessions footer it writes; the subagent must not run `session-id.sh` itself. If the script exits non-zero, omit the value and the subagent skips the footer.
 
@@ -128,7 +128,7 @@ If the subagent detects a monorepo:
 - do not collapse a real product into another just because it is smaller
 - pick the **primary product**: the one most central to the repo's current purpose or user-facing value. The subagent makes this call from scan evidence alone.
 - scaffold the root org-level `osis/` via `onboard.sh --org {inferred_org_name}`: `osis.json` (type: "org") and a `twin.md` holding the observed repo-level product/system map
-- scaffold the primary product's `osis/` at its product-local path via `onboard.sh v1`: the minimum product root
+- scaffold the primary product's `osis/` at its product-local path via `onboard.sh mvp`: the minimum product root
 - update the root `osis/osis.json` `products` map to point to the primary product's local tree
 - inside each product, `{version}/core/` always exists; satellites become `{version}/{system}/`
 - additional inferred products stay unscaffolded until the conversation reaches them
@@ -143,9 +143,9 @@ In monorepos, the subagent makes a best guess from scan evidence, scaffolds, and
 
 If bootstrap detected:
 
-1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh v1` to scaffold the minimum Osis root. The script wires `CLAUDE.md` with Product Knowledge pointers. Do not touch `CLAUDE.md` yourself.
+1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh mvp` to scaffold the minimum Osis root. The script wires `CLAUDE.md` with Product Knowledge pointers. Do not touch `CLAUDE.md` yourself.
 2. Overwrite `osis/twin.md` with a stub: *"Product not yet defined. Bootstrapped from [detected framework/template]. Twin will be written after the first product decisions land."* Include basic stack info (framework, language, key dependencies) for agent context.
-3. Update `osis/osis.json`: ensure `type: "product"`, `product: null`, `activeVersion: "v1"`, preserve `anonId` and `createdAt`, regenerate the `files` manifest from docs actually materialized.
+3. Update `osis/osis.json`: ensure `type: "product"`, `product: null`, `activeVersion: "mvp"`, preserve `anonId` and `createdAt`, regenerate the `files` manifest from docs actually materialized.
 4. Return `{ "type": "bootstrap", "signals": ["1-2 line summary of what you checked and concluded"] }`.
 
 Skip the product scan. The bootstrap path is fast because there is nothing yet to read.
@@ -156,7 +156,7 @@ If import detected:
 
 **Standalone repo:**
 
-1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh v1` at the repo root to scaffold the minimum Osis root.
+1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh mvp` at the repo root to scaffold the minimum Osis root.
 2. Write `osis/twin.md`. Full codebase scan. Mechanical, present tense. What systems exist, what they do, how they connect. Product-level master diagram. Readable in 2-3 minutes. Descriptive, not prescriptive.
 3. Import relevant existing artifacts into `osis/inbox/` as imported-signal files. Each is unconfirmed. Capture claims, tensions, and candidate questions. **Never copy prose into funnel docs.**
 4. Update `osis/osis.json`: set inferred product name, regenerate the `files` manifest, preserve telemetry fields.
@@ -165,7 +165,7 @@ If import detected:
 **Monorepo:**
 
 1. Run `bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh --org {inferred_org_name}` at the repo root to create the org-level routing layer: `osis.json` (type: "org") and a `twin.md` stub.
-2. Run `(cd {primary_product_path} && bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh v1)` to scaffold the primary product's Osis root at its product-local path.
+2. Run `(cd {primary_product_path} && bash ${CLAUDE_SKILL_DIR}/scripts/onboard.sh mvp)` to scaffold the primary product's Osis root at its product-local path.
 3. Write the root `osis/twin.md` with the observed repo-level product/system map diagram. Box-drawing characters, products as peers, owned systems beneath their product, shared packages omitted. See `references/docs/engine/twin.md` for the full rules.
 4. Write the primary product's `{primary_product_path}/osis/twin.md` with a product-scoped codebase scan.
 5. Import relevant existing artifacts for the primary product into `{primary_product_path}/osis/inbox/`.
@@ -313,9 +313,3 @@ Return the question text only, no leading glyph. The main conversation prepends 
 
 For monorepos, the subagent writes the root `osis/twin.md` with a repo-level product/system map diagram. The builder never sees this diagram at session start; it lives in the twin and is read on-demand by any agent working in the repo. Diagram geometry rules live in `references/docs/engine/twin.md`.
 
----
-
-## Sessions
-
-- 2026-04-29 — Subagent-spawn block now includes a parent session ID arg so the onboarding subagent's footers bind to the conversation that initiated the work. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
-- 2026-04-23 — Added sessions.md to always-scaffolded set, documented preflight suppression during onboarding · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`

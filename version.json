@@ -1,5 +1,5 @@
 {
-  "version": "1.9.4",
-  "title": "Sharper inbox provenance",
-  "description": "Inbox writes now defer to the signals drafting doc, so the source field captures who said it instead of just the conversation channel."
+  "version": "1.11.0",
+  "title": "Specs the build agent can execute",
+  "description": "Impl docs now have two durable sections: UX (how it looks and feels) and Technology (how it gets built), with UX leading and Technology serving. Every detail discussed lands in the file, no filtering, so the coding agent has the full spec instead of half the context in chat. Briefs lead with a DAG of atomic specs, and a new Build mode brackets plan mode with the open/close bookkeeping."
 }

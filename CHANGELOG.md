@@ -52,6 +52,65 @@ Paths use backticks. `{placeholders}` are literal markers the agent resolves aga
 
 ---
 
+## v1.11.0: Specs the build agent can execute (2026-05-13)
+
+The impl docs were sparse and over-shaped at once. Long product-thinking sessions resolved real decisions in conversation, and the agent silently filtered them on the way to the file — judging some details too tangential to capture, leaving the build agent to ship against a thin spec while load-bearing context lived in the chat transcript. Meanwhile the template had grown eight mandatory subheaders that were ceremony over what the impl actually is: a translation from UX to technology. This release rewrites the impl drafting doc around three foundations. **Two durable typed sections:** every impl carries `## UX` (how it looks and feels) and `## Technology` (how it gets built). UX leads; Technology serves it. Internal structure inside each section is adaptive — subsections appear when there's content that warrants them (`### Decisions`, `### Architecture`, `### Key Flows`, `### Interfaces`, `### Rollout`), not as mandatory headers. Engineering Notes stays as a separate optional appended section for build-time discoveries. **Two-pass authoring:** UX gets written in the product-thinking pass, Technology fills in during a technical pass against current library and framework documentation. **No-filter density:** every detail of the spec discussed lands in the file. The agent's only judgment is whether content is about the spec, never whether it's important enough; that judgment was the dominant failure mode. The human prunes later, the agent never decides what to leave out. The Consult mode's Write step gains a density pass before close to sweep the conversation for anything that didn't land. Two new behavioral rules in SKILL.md make these non-negotiable. The Build Order section is removed from impl.md; one spec = one atomic step, and internal sequence (when load-bearing) lives as numbered subheaders inside Technology rather than its own section.
+
+Briefs now lead with the DAG as a first-class table. `## Phases` opens with a Phases table whose columns are `Spec | Name | Depends on | Status`. The Spec column carries the kebab-case id matching `{spec-id}.impl.md`, Depends-on names sibling ids, Status tracks per-spec lifecycle. This is the single source of truth for execution order, cycle detection, and parallelizable siblings. The per-phase YAML codeblock pattern introduced in v1.9.0 is retired. The reversal is intentional: a single source with a status column is easier to maintain, fits the cockpit-level scan, and is still agent-parseable. A new `## Shared Decisions` section lands between `## What Doesn't Change` and `## Phases` as the canonical home for cross-cutting intra-iteration commitments (stack picks, transport choices, naming conventions); atomic specs read from there to inherit iteration-wide context without repeating it or hunting across siblings.
+
+A new **Build mode** brackets plan mode. Today the skill writes the spec and hands off to plan mode at the impl boundary; plan mode codes, but the orient/load/close-the-loop work (DAG check, context load, status update, changelog logging, upward propagation, session footer) is protocol-aware and falls on the human or gets skipped. Build mode owns that loop. On open: resolve the target spec against the brief's Phases table, walk the DAG (offer three branches if a dependency isn't done), load the spec + Shared Decisions + brief framing into context silently, and hand back. The user enters plan mode themselves; that boundary stays sovereign. On close: flip the spec's Status in both the brief table and the impl header, append a `[Build]` entry to the version changelog, sweep for upward propagation, session-footer every touched doc. Build does not enter plan mode, does not author code, does not run tests. It is a wrapper that makes the DAG and changelog actually function as the coordination substrate for parallel sessions.
+
+Atomic spec naming codifies: `NN-name.impl.md` for solo specs, `NNa/NNb/NNc-name.impl.md` for grouped sub-specs sharing a phase number. The id matches the brief's Phases-table Spec column. Spec headers gain `**Depends on:**` cross-referencing the table. Protocol version bumps from `v2.0.0` to `v2.1.0`.
+
+### Log
+
+- Added: `references/modules/build.md`
+- Reshaped: `SKILL.md`
+- Reshaped: `references/protocol.md`
+- Reshaped: `references/docs/funnel/brief.md`
+- Reshaped: `references/docs/engine/impl.md`
+- Reshaped: `references/modules/maintenance.md`
+
+### Migration
+
+For each iteration directory at `osis/{version}/{system}/{iteration-slug}/`:
+
+- Reshape: `osis/{version}/{system}/{iteration-slug}/brief.md`
+- Reshape: `osis/{version}/{system}/{iteration-slug}/{phase-name}.impl.md`
+
+**Brief reshape per iteration:**
+- Convert each `### {phase-slug}` heading + YAML `depends_on:` codeblock under `## Phases` into a single Phases table at the top of the `## Phases` section. Columns: `Spec | Name | Depends on | Status`. Spec column carries the kebab-case slug matching `{spec-id}.impl.md`. Depends on carries sibling spec ids as a comma-separated list (or `—` for roots). Status defaults to `not started` for any spec without a known landed state; mark `done` for specs whose impl file currently reads `Status: done` or whose work is clearly already in-tree.
+- Insert `## Shared Decisions` between `## What Doesn't Change` and `## Phases`. Bullet list. Lift any cross-cutting iteration-internal commitments currently buried in `## What Doesn't Change` (stack picks, transport conventions, integration patterns) into Shared Decisions. `What Doesn't Change` retains only world-facing exclusions (surfaces, behaviors, code paths the iteration leaves untouched).
+- Preserve all other sections (Signals, Insight, Bet, What Changes, Success Criteria, Sessions footer) verbatim.
+
+**Impl reshape per spec:**
+- Add `**Depends on:**` to the header field block between `**Iteration:**` and `**Status:**`, populated from the parent brief's new Phases table. Root specs: `**Depends on:** —`.
+- If the impl has an old `## Dependencies` section in the body (some early specs do), delete that section after migrating its content into the header field.
+- If the impl has a `## Build Order` section, fold its content into `## Scope` (typically as numbered subheaders within Scope) and delete the Build Order section.
+- The two-section shape (`## UX` and `## Technology`, plus optional `## Engineering Notes`) is the new template shape, but is NOT auto-applied during migration. Existing specs keep their current section structure; new specs use the new template. Reshape touches only the header fields and Build Order folding. Restructuring an existing spec into UX + Technology is allowed but optional; doing it benefits future build sessions against that spec but is not required for the migration to be complete.
+- Preserve all other sections.
+
+The migration is reshape-only; no file is added, renamed, or removed.
+
+---
+
+## v1.10.0: Product context belongs in osis (2026-05-08)
+
+Two persistence layers run alongside the osis tree: Claude Code's per-user `MEMORY.md` (single machine, never shared) and the osis docs in the repo (versioned, travels with the code, reaches every collaborator, agent, and surface). Until now the skill never named the boundary between them, so product facts, operating principles, ICP framing, and other team-level knowledge could land in single-tenant memory and never reach the cloud, the cofounder, or any hosted agent. This release codifies the split. Osis owns shared knowledge: anything a non-skill surface or a non-current-user would need to operate on the product. `MEMORY.md` owns personal interaction style: writing preferences, machine-local context, per-session affordances. The routing test is one question: does this knowledge matter to anyone other than this user in this session, or to a non-skill surface? If yes, osis. If no, memory. The boundary is explicit that it supersedes the underlying agent's auto-memory routing while osis is active. SKILL.md gains a new "Memory Boundaries" section between Inbox Signal Buffering and Modes, plus a matching Behavioral Rules entry that points back to it.
+
+Bundled cleanup: the maintainer-only Sessions footer is removed from `SKILL.md` and from every reference file that had accumulated one (`references/protocol.md`, `references/modules/triage.md`, `references/modules/maintenance.md`, `references/modules/onboarding.md`, `references/docs/funnel/brief.md`). SKILL.md ships in every install and loads on every activation; reference files load lazily but still during their respective modes. Per-release session entries were bloating every user's prompt context with maintainer-only provenance the user has no use for. Provenance for skill changes already lives in `CHANGELOG.md` and the matching `mvp/changelog.md` entry; the in-source footers were duplicating that record at every user's expense. Doc Conventions now states explicitly that the Sessions footer convention applies to user-repo osis docs only, and that the skill source itself (SKILL.md, references/, scripts/) is not a footered doc. No protocol shape change.
+
+### Log
+
+- Reshaped: `SKILL.md`
+- Reshaped: `references/protocol.md`
+- Reshaped: `references/modules/triage.md`
+- Reshaped: `references/modules/maintenance.md`
+- Reshaped: `references/modules/onboarding.md`
+- Reshaped: `references/docs/funnel/brief.md`
+
+---
+
 ## v1.9.4: Sharper inbox provenance (2026-04-29)
 
 The inbox flush template in `SKILL.md` previously hardcoded `source: consult conversation` in its example frontmatter, which contradicted the `signals.md` drafting principle that provenance names the human source, not the channel. The agent followed the SKILL.md template at flush time and ignored the drafting principle, so inbox files captured the conversation as their "source" and lost track of who actually said the thing being recorded. The fix replaces the per-field enumeration with a pointer: "Frontmatter per `references/docs/engine/signals.md`." The drafting doc owns the field meanings; the SKILL.md flush bullet stops contradicting them. No new gate, no checklist, no procedural ritual. The principle runs silently the way drafting docs are meant to. No protocol shape change.

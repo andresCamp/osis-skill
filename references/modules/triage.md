@@ -127,7 +127,7 @@ If the distillation produces a "we should think about this later" — that's not
 
 - [Discard] osis/inbox/2026-04-15--random-thought.md — unclear signal, asked user to resurface if relevant
 - [Distill → manifesto.md] osis/inbox/2026-04-14--core-promise.md, osis/inbox/2026-04-15--user-quote.md — clarified product promise to emphasize speed of iteration
-- [Move → v1/iteration-2/signals/] osis/inbox/2026-04-15--onboarding-friction.md — becomes iteration signal for in-flight onboarding work
+- [Move → mvp/iteration-2/signals/] osis/inbox/2026-04-15--onboarding-friction.md, becomes iteration signal for in-flight onboarding work
 ```
 
 Group entries by triage session, not by individual item. One triage pass = one dated heading.
@@ -148,9 +148,3 @@ Both Osis and the user can write to the inbox.
 
 Either way, update the `osis.json` inbox array on write.
 
----
-
-## Sessions
-
-- 2026-04-29 — Triage subagent spawn now requires the parent to resolve the session ID first and pass it into the prompt, so footers from triage writes bind to the conversation that initiated the work. · `claude -r f8a091a2-bca2-4185-8bea-9cef943ce3dc`
-- 2026-04-23 — Added Session Log section, triage as strong-moment source on mode entry and completion · `claude -r 14bd6251-f95c-4256-a184-3b259e64906b`
